@@ -1,0 +1,13 @@
+{
+  "scenario": "Provider Instability",
+  "verdict": "PASS — Ledger consistent despite provider instability",
+  "tx_attempted": 30479,
+  "tx_succeeded": 139,
+  "tx_failed_provider": 0,
+  "tx_failed_other": 30340,
+  "success_rate": "0.5%",
+  "negative_balance": 0,
+  "avg_latency_ms": 373.06762032875093,
+  "p95_latency_ms": 1146.0999999999985,
+  "max_latency_ms": 5468
+}

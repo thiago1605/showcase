@@ -1,0 +1,11 @@
+{
+  "scenario": "Double-Spend Attack Simulation",
+  "verdict": "PASS — No double-spend",
+  "payout_attempts": 50,
+  "payout_accepted": 0,
+  "payout_rejected": 50,
+  "total_withdrawn": 0,
+  "negative_balance": 0,
+  "double_spend": 0,
+  "p95_latency_ms": 59.55
+}

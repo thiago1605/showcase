@@ -1,0 +1,14 @@
+{
+  "scenario": "Database Contention Test",
+  "verdict": "PASS — No lost updates, no negative balances",
+  "total_write_ops": 48257,
+  "write_succeeded": 52,
+  "write_failed": 18895,
+  "rate_limited": 0,
+  "balance_reads": 9407,
+  "negative_balances": 0,
+  "avg_write_latency_ms": 355.48641647843834,
+  "p95_write_latency_ms": 1142,
+  "avg_read_latency_ms": 172.09312214308494,
+  "p95_read_latency_ms": 412
+}

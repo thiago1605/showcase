@@ -1,0 +1,94 @@
+---
+title: Segurança (HMAC)
+description: Como validar a assinatura dos webhooks da Fellow Core.
+---
+
+## Por que validar?
+
+Qualquer pessoa com a URL do seu endpoint poderia enviar um POST falso. A assinatura HMAC-SHA256 garante que o webhook veio da Fellow Core e não foi adulterado.
+
+## Como funciona
+
+1. A Fellow Core gera uma assinatura usando o **body** do request e o **secret** que você definiu ao criar o endpoint.
+2. A assinatura é enviada no header `X-Fellow-Signature`.
+3. Seu servidor recalcula a assinatura e compara com a recebida.
+
+## Algoritmo
+
+```
+signature = HMAC-SHA256(secret, raw_body)
+```
+
+O header contém o hash em hexadecimal:
+
+```
+X-Fellow-Signature: sha256=a1b2c3d4e5f6...
+```
+
+## Exemplo — Node.js
+
+```javascript
+import crypto from 'node:crypto';
+
+function verifyWebhook(rawBody, signature, secret) {
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(rawBody, 'utf8')
+    .digest('hex');
+
+  const received = signature.replace('sha256=', '');
+
+  return crypto.timingSafeEqual(
+    Buffer.from(expected, 'hex'),
+    Buffer.from(received, 'hex')
+  );
+}
+
+// No handler do webhook:
+app.post('/webhooks/fellow', (req, res) => {
+  const sig = req.headers['x-fellow-signature'];
+  const valid = verifyWebhook(req.rawBody, sig, process.env.WEBHOOK_SECRET);
+
+  if (!valid) return res.status(401).send('Invalid signature');
+
+  // Processar evento...
+  res.status(200).send('OK');
+});
+```
+
+## Exemplo — C#
+
+```csharp
+using System.Security.Cryptography;
+using System.Text;
+
+bool VerifyWebhook(string rawBody, string signature, string secret)
+{
+    using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(secret));
+    var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(rawBody));
+    var expected = Convert.ToHexStringLower(hash);
+    var received = signature.Replace("sha256=", "");
+    return CryptographicOperations.FixedTimeEquals(
+        Encoding.UTF8.GetBytes(expected),
+        Encoding.UTF8.GetBytes(received));
+}
+```
+
+## Exemplo — Python
+
+```python
+import hmac
+import hashlib
+
+def verify_webhook(raw_body: bytes, signature: str, secret: str) -> bool:
+    expected = hmac.new(
+        secret.encode(), raw_body, hashlib.sha256
+    ).hexdigest()
+    received = signature.removeprefix("sha256=")
+    return hmac.compare_digest(expected, received)
+```
+
+:::caution[Importante]
+- Use **comparação em tempo constante** (`timingSafeEqual`, `CryptographicOperations.FixedTimeEquals`, `hmac.compare_digest`) para evitar timing attacks.
+- Valide o body **cru** (raw), antes de qualquer parsing JSON.
+:::

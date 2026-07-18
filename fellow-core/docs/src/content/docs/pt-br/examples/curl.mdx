@@ -1,0 +1,130 @@
+---
+title: Exemplos cURL
+description: Exemplos práticos de uso da Fellow Core API com cURL.
+---
+
+## Variáveis
+
+Defina as variáveis no seu terminal para facilitar os exemplos:
+
+```bash
+export BASE_URL="https://api.fellowpay.com.br"
+export API_KEY="sua-api-key"
+```
+
+---
+
+## Criar transação Pix
+
+```bash
+curl -X POST "$BASE_URL/api/v1/transactions" \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $API_KEY" \
+  -d '{
+    "amount": 99.90,
+    "paymentType": "PIX",
+    "description": "Assinatura mensal",
+    "idempotencyKey": "sub-2026-04"
+  }'
+```
+
+## Criar transação com seller
+
+```bash
+curl -X POST "$BASE_URL/api/v1/transactions" \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $API_KEY" \
+  -d '{
+    "amount": 350.00,
+    "paymentType": "CREDIT_CARD",
+    "installments": 3,
+    "sellerId": "seller-uuid",
+    "description": "Compra marketplace",
+    "idempotencyKey": "order-7890"
+  }'
+```
+
+## Listar transações com filtro
+
+```bash
+curl "$BASE_URL/api/v1/transactions?page=1&pageSize=10&status=CAPTURED&from=2026-04-01" \
+  -H "X-Api-Key: $API_KEY"
+```
+
+## Buscar transação por ID
+
+```bash
+curl "$BASE_URL/api/v1/transactions/TRANSACTION_UUID" \
+  -H "X-Api-Key: $API_KEY"
+```
+
+## Reembolso parcial
+
+```bash
+curl -X POST "$BASE_URL/api/v1/transactions/TRANSACTION_UUID/refund" \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $API_KEY" \
+  -d '{
+    "amount": 25.00,
+    "reason": "Item danificado"
+  }'
+```
+
+## Reembolso total
+
+```bash
+curl -X POST "$BASE_URL/api/v1/transactions/TRANSACTION_UUID/refund" \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $API_KEY" \
+  -d '{
+    "reason": "Cliente desistiu"
+  }'
+```
+
+## Criar seller
+
+```bash
+curl -X POST "$BASE_URL/api/v1/sellers" \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $API_KEY" \
+  -d '{
+    "name": "Maria Confeitaria",
+    "document": "98765432100",
+    "email": "maria@confeitaria.com",
+    "phone": "11988887777",
+    "address": {
+      "street": "Av. Paulista",
+      "number": "1000",
+      "neighborhood": "Bela Vista",
+      "city": "São Paulo",
+      "state": "SP",
+      "zipCode": "01310100"
+    }
+  }'
+```
+
+## Registrar webhook endpoint
+
+```bash
+curl -X POST "$BASE_URL/api/v1/webhook-endpoints" \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $API_KEY" \
+  -d '{
+    "url": "https://meuapp.com/hooks/fellow",
+    "events": ["transaction.captured", "transaction.refunded"],
+    "secret": "whsec_minha_chave_secreta"
+  }'
+```
+
+## Consultar dashboard
+
+```bash
+curl "$BASE_URL/api/v1/dashboard?from=2026-04-01&to=2026-04-30" \
+  -H "X-Api-Key: $API_KEY"
+```
+
+## Health check
+
+```bash
+curl "$BASE_URL/health"
+```

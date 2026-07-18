@@ -1,0 +1,64 @@
+---
+title: Recebendo Webhooks
+description: Como configurar seu servidor para receber eventos da Fellow Core.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+## Visão geral
+
+A Fellow Core envia notificações HTTP POST para os endpoints que você registra. Isso permite que seu sistema reaja a eventos como pagamentos confirmados, reembolsos e aprovações de KYC sem precisar fazer polling.
+
+## Como funciona
+
+<Steps>
+1. **Registre um endpoint** via [API de Webhook Endpoints](/pt-br/api/webhook-endpoints).
+2. **Receba eventos** — a Fellow Core envia um POST com o payload JSON e uma assinatura HMAC.
+3. **Valide a assinatura** usando o secret que você definiu ao criar o endpoint.
+4. **Retorne 2xx** — qualquer resposta com status 200-299 confirma o recebimento.
+</Steps>
+
+## Formato do payload
+
+```json
+{
+  "event": "transaction.captured",
+  "timestamp": "2026-04-27T10:05:00Z",
+  "data": {
+    "transactionId": "uuid",
+    "tenantId": "uuid",
+    "amount": 150.00,
+    "status": "CAPTURED"
+  }
+}
+```
+
+## Headers enviados
+
+| Header                     | Descrição                                      |
+|----------------------------|-------------------------------------------------|
+| `Content-Type`             | `application/json`                              |
+| `X-Fellow-Signature`       | Assinatura HMAC-SHA256 do body                  |
+| `X-Fellow-Timestamp`       | Timestamp ISO 8601 da entrega                   |
+| `X-Fellow-Delivery-Id`     | UUID único desta entrega (para idempotência)    |
+
+## Retentativas
+
+Se o seu endpoint não retornar `2xx` ou não responder em **10 segundos**, a Fellow Core fará retentativas:
+
+| Tentativa | Delay     |
+|-----------|-----------|
+| 1ª        | Imediata  |
+| 2ª        | 1 minuto  |
+| 3ª        | 5 minutos |
+| 4ª        | 30 minutos|
+| 5ª        | 2 horas   |
+
+Após 5 tentativas sem sucesso, a entrega é marcada como `FAILED`.
+
+## Boas práticas
+
+- **Responda rápido** — processe o evento de forma assíncrona (enfileire e retorne 200).
+- **Seja idempotente** — use o `X-Fellow-Delivery-Id` para evitar processar o mesmo evento duas vezes.
+- **Valide a assinatura** — veja [Segurança (HMAC)](/pt-br/webhooks/security).
+- **Use HTTPS** — endpoints HTTP não são aceitos em produção.

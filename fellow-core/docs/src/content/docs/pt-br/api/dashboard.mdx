@@ -1,0 +1,56 @@
+---
+title: Dashboard
+description: Consulte métricas agregadas das transações via Fellow Core.
+---
+
+## Consultar dashboard
+
+```http
+GET /api/v1/dashboard
+```
+
+### Query parameters
+
+| Parâmetro | Tipo     | Obrigatório | Descrição                    |
+|-----------|----------|-------------|------------------------------|
+| `from`    | datetime | Não         | Data inicial (ISO 8601)      |
+| `to`      | datetime | Não         | Data final (ISO 8601)        |
+
+### Exemplo
+
+```bash
+curl "/api/v1/dashboard?from=2026-04-01&to=2026-04-30" \
+  -H "X-Api-Key: {apiKey}"
+```
+
+### Response `200 OK`
+
+```json
+{
+  "totalAmount": 125000.00,
+  "totalFees": 3750.00,
+  "totalNet": 121250.00,
+  "transactionCount": 342,
+  "byStatus": [
+    { "status": "CAPTURED", "count": 310, "amount": 115000.00 },
+    { "status": "PENDING", "count": 20, "amount": 8000.00 },
+    { "status": "REFUNDED", "count": 8, "amount": 1500.00 },
+    { "status": "EXPIRED", "count": 4, "amount": 500.00 }
+  ],
+  "byPaymentType": [
+    { "paymentType": "PIX", "count": 280, "amount": 95000.00 },
+    { "paymentType": "CREDIT_CARD", "count": 62, "amount": 30000.00 }
+  ]
+}
+```
+
+### Campos
+
+| Campo              | Descrição                                          |
+|--------------------|----------------------------------------------------|
+| `totalAmount`      | Soma bruta de todas as transações no período       |
+| `totalFees`        | Soma das taxas cobradas                            |
+| `totalNet`         | Valor líquido (amount - fees)                      |
+| `transactionCount` | Total de transações                                |
+| `byStatus`         | Agrupamento por status                             |
+| `byPaymentType`    | Agrupamento por tipo de pagamento                  |

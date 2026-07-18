@@ -1,0 +1,105 @@
+---
+title: Saques (Payouts)
+description: Referência completa da API de saques da Fellow Core.
+---
+
+Payouts representam saques da conta BaaS de um seller para a chave Pix cadastrada. O dinheiro parte diretamente da conta do seller — a Fellow Core nunca retém valores.
+
+---
+
+## Criar saque
+
+```http
+POST /api/v1/payouts
+```
+
+### Request body
+
+| Campo       | Tipo    | Obrigatório | Descrição                                              |
+|-------------|---------|-------------|--------------------------------------------------------|
+| `sellerId`  | uuid    | Sim         | ID do seller cujo saldo será sacado                   |
+| `amount`    | decimal | Sim         | Valor em reais (mínimo: superior à soma das taxas)    |
+
+### Taxas aplicadas
+
+| Taxa              | Valor padrão    | Descrição                                                  |
+|-------------------|-----------------|------------------------------------------------------------|
+| Saque < R$ 500    | R$ 1,00         | Cobraday pelo provedor de pagamentos                      |
+| `PayoutFixedFee`  | R$ 1,00         | Taxa fixa da Fellow Core por saque (configurável por seller) |
+
+O valor líquido transferido é: `amount − taxas`.
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/payouts \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "sellerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "amount": 500.00
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "sellerId": "3fa85f64-...",
+  "amount": 500.00,
+  "netAmount": 498.00,
+  "status": "PENDING",
+  "createdAt": "2024-01-15T14:00:00Z"
+}
+```
+
+### Possíveis erros
+
+| Status | Descrição                                                               |
+|--------|-------------------------------------------------------------------------|
+| `400`  | Valor insuficiente para cobrir as taxas                                |
+| `404`  | Seller não encontrado                                                   |
+| `422`  | Seller sem conta BaaS configurada (`ExternalAccountId` ausente)        |
+| `422`  | Saldo insuficiente na conta WALLET do seller                           |
+
+---
+
+## Listar saques
+
+```http
+GET /api/v1/payouts?page=1&pageSize=20
+```
+
+### Query params
+
+| Parâmetro  | Tipo | Default | Descrição         |
+|------------|------|---------|-------------------|
+| `page`     | int  | 1       | Página atual      |
+| `pageSize` | int  | 20      | Itens por página  |
+
+---
+
+## Obter saque
+
+```http
+GET /api/v1/payouts/{id}
+```
+
+### Status possíveis
+
+| Status     | Descrição                                |
+|------------|------------------------------------------|
+| `PENDING`  | Aguardando processamento                 |
+| `COMPLETED`| Transferência concluída com sucesso      |
+| `FAILED`   | Falha na transferência (ver `failureReason`) |
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "status": "FAILED",
+  "failureReason": "Saldo insuficiente na conta BaaS",
+  "createdAt": "2024-01-15T14:00:00Z",
+  "updatedAt": "2024-01-15T14:01:00Z"
+}
+```

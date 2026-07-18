@@ -1,0 +1,96 @@
+---
+title: Links de Pagamento
+description: Referência da API de links de pagamento da Fellow Core.
+---
+
+Links de pagamento permitem criar URLs compartilháveis para receber pagamentos sem integração técnica do lado do comprador.
+
+---
+
+## Criar link de pagamento
+
+```http
+POST /api/v1/payment-links
+```
+
+### Request body
+
+| Campo          | Tipo     | Obrigatório | Descrição                                    |
+|----------------|----------|-------------|----------------------------------------------|
+| `amount`       | decimal  | Sim         | Valor em reais (> 0)                         |
+| `paymentType`  | enum     | Sim         | `PIX`, `CREDIT_CARD`, `DEBIT_CARD`           |
+| `installments` | int      | Não         | Parcelas (default 1, máx 12 para cartão)     |
+| `sellerId`     | uuid     | Não         | Seller que receberá o pagamento              |
+| `description`  | string   | Não         | Descrição exibida na página de pagamento     |
+| `maxUses`      | int      | Não         | Número máximo de usos (null = ilimitado)     |
+| `expiresAt`    | datetime | Não         | Data de expiração (null = sem expiração)     |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/payment-links \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "amount": 150.00,
+    "paymentType": "PIX",
+    "sellerId": "9f8e7d6c-...",
+    "description": "Pacote Premium",
+    "maxUses": 10,
+    "expiresAt": "2026-05-30T23:59:59Z"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "token": "abc123xyz",
+  "url": "https://api.fellowpay.com.br/api/v1/payment-links/pay/abc123xyz",
+  "amount": 150.00,
+  "paymentType": "PIX",
+  "description": "Pacote Premium",
+  "active": true,
+  "usageCount": 0,
+  "maxUses": 10,
+  "expiresAt": "2026-05-30T23:59:59Z",
+  "createdAt": "2026-04-29T12:00:00Z"
+}
+```
+
+---
+
+## Listar links de pagamento
+
+```http
+GET /api/v1/payment-links?page=1&pageSize=20
+```
+
+### Response `200 OK`
+
+Retorna `PagedResult` com array de links.
+
+---
+
+## Consultar link de pagamento
+
+```http
+GET /api/v1/payment-links/{id}
+```
+
+### Response `200 OK`
+
+Retorna o link com todos os campos, incluindo `usageCount`.
+
+---
+
+## Excluir link de pagamento
+
+```http
+DELETE /api/v1/payment-links/{id}
+```
+
+### Response `204 No Content`
+
+Desativa o link. Acessos futuros à URL retornarão erro.

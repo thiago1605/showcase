@@ -1,0 +1,91 @@
+---
+title: Exportação de Dados
+description: Exporte transações e saques em CSV ou PDF via Fellow Core.
+---
+
+A Fellow Core permite exportar relatórios financeiros em **CSV** (para análise em planilhas) e **PDF** (para envio a contadores ou parceiros). Todos os endpoints retornam o arquivo diretamente no body da resposta.
+
+:::note
+Limite de **10.000 registros** por exportação. Para volumes maiores, use os filtros de data para dividir em múltiplos arquivos.
+:::
+
+---
+
+## Exportar transações
+
+### CSV
+
+```http
+GET /api/v1/transactions/export/csv
+```
+
+Retorna `Content-Type: text/csv` com cabeçalho UTF-8.
+
+### PDF
+
+```http
+GET /api/v1/transactions/export/pdf
+```
+
+Retorna `Content-Type: application/pdf` — relatório A4 paisagem com tabela, totais e paginação.
+
+### Query params (ambos os formatos)
+
+| Parâmetro     | Tipo   | Descrição                                      |
+|---------------|--------|------------------------------------------------|
+| `from`        | date   | Data inicial (ISO 8601, ex: `2024-01-01`)      |
+| `to`          | date   | Data final (ISO 8601)                          |
+| `sellerId`    | uuid   | Filtra por seller específico                   |
+| `status`      | string | `PENDING`, `COMPLETED`, `FAILED`, `REFUNDED`   |
+| `paymentType` | string | `PIX`, `CREDIT_CARD`, `DEBIT`                  |
+| `provider`    | string | `STRIPE`, `OPENPIX`                            |
+
+### Exemplo CSV
+
+```bash
+curl -G /api/v1/transactions/export/csv \
+  -H "X-Api-Key: {apiKey}" \
+  -d from=2024-01-01 \
+  -d to=2024-01-31 \
+  -d status=COMPLETED \
+  -o transacoes-janeiro.csv
+```
+
+---
+
+## Exportar saques (payouts)
+
+### CSV
+
+```http
+GET /api/v1/payouts/export/csv
+```
+
+### PDF
+
+```http
+GET /api/v1/payouts/export/pdf
+```
+
+### Query params
+
+| Parâmetro  | Tipo   | Descrição                                   |
+|------------|--------|---------------------------------------------|
+| `from`     | date   | Data inicial                                |
+| `to`       | date   | Data final                                  |
+| `sellerId` | uuid   | Filtra por seller                           |
+| `status`   | string | `PENDING`, `COMPLETED`, `FAILED`            |
+
+---
+
+## Estrutura do CSV — Transações
+
+```
+id,sellerId,amount,netAmount,status,paymentType,provider,description,createdAt
+```
+
+## Estrutura do CSV — Saques
+
+```
+id,sellerId,amount,netAmount,status,failureReason,createdAt
+```

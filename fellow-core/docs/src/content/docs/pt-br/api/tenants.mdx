@@ -1,0 +1,125 @@
+---
+title: Tenants
+description: Referência da API de gerenciamento de tenants da Fellow Core.
+---
+
+O tenant representa a conta principal na plataforma. Cada tenant possui sua própria API key, configurações de provedores e sellers vinculados.
+
+---
+
+## Criar tenant
+
+```http
+POST /api/v1/tenants
+```
+
+:::note
+Este endpoint não exige autenticação — é utilizado para onboarding de novos clientes.
+:::
+
+### Request body
+
+| Campo  | Tipo   | Obrigatório | Descrição                                         |
+|--------|--------|-------------|---------------------------------------------------|
+| `name` | string | Sim         | Nome do tenant (3-100 caracteres)                 |
+| `slug` | string | Sim         | Identificador único (lowercase, hifenizado)       |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/tenants \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Minha Empresa",
+    "slug": "minha-empresa"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "tenant": {
+    "id": "a1b2c3d4-...",
+    "name": "Minha Empresa",
+    "slug": "minha-empresa",
+    "createdAt": "2026-04-29T12:00:00Z"
+  },
+  "apiSecret": "sk_live_..."
+}
+```
+
+:::caution
+O `apiSecret` é exibido **uma única vez**. Armazene-o com segurança.
+:::
+
+---
+
+## Consultar perfil do tenant
+
+```http
+GET /api/v1/tenants/me
+```
+
+### Response `200 OK`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "name": "Minha Empresa",
+  "slug": "minha-empresa",
+  "maskedApiKey": "pk_...****1234",
+  "createdAt": "2026-04-29T12:00:00Z"
+}
+```
+
+---
+
+## Atualizar provedores de pagamento
+
+```http
+PATCH /api/v1/tenants/me/providers
+```
+
+### Request body
+
+| Campo              | Tipo | Obrigatório | Descrição                            |
+|--------------------|------|-------------|--------------------------------------|
+| `activePixProvider`| enum | Não         | `0` = STRIPE, `1` = OPENPIX          |
+| `activeCardProvider`| enum| Não         | `0` = STRIPE, `1` = OPENPIX          |
+
+### Response `200 OK`
+
+---
+
+## Listar webhooks do provedor
+
+```http
+GET /api/v1/tenants/me/provider-webhooks
+```
+
+Lista os webhooks registrados junto ao provedor de pagamento configurado.
+
+### Response `200 OK`
+
+```json
+[
+  {
+    "id": "wh-123",
+    "name": "Transações",
+    "url": "https://api.fellowpay.com.br/api/v1/webhooks/openpix",
+    "isActive": true,
+    "events": ["OPENPIX:CHARGE_COMPLETED"]
+  }
+]
+```
+
+---
+
+## Excluir webhook do provedor
+
+```http
+DELETE /api/v1/tenants/me/provider-webhooks/{webhookId}
+```
+
+### Response `204 No Content`

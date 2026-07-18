@@ -1,0 +1,6 @@
+@FellowPay.Api_HostAddress = http://localhost:5195
+
+GET {{FellowPay.Api_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

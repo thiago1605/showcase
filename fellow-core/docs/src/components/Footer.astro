@@ -1,0 +1,149 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default {...Astro.props}><slot /></Default>
+
+<footer class="fellow-footer">
+  <div class="fellow-footer-inner">
+    <div class="fellow-footer-brand">
+      <img
+        src="/assets/grupo_fellow_full_logo_no_bg.png"
+        alt="Grupo Fellow"
+        class="fellow-footer-logo"
+      />
+      <p class="fellow-footer-powered">Powered by <strong>Grupo Fellow</strong></p>
+    </div>
+
+    <div class="fellow-footer-grid">
+      <div class="fellow-footer-col">
+        <h4>Contato</h4>
+        <ul>
+          <li>
+            <a href="mailto:suporte@grupofellow.com.br">suporte@grupofellow.com.br</a>
+          </li>
+          <li>
+            <a href="mailto:contato@grupofellow.com.br">contato@grupofellow.com.br</a>
+          </li>
+          <li>
+            <a href="https://wa.me/5571996418877" target="_blank" rel="noopener">
+              WhatsApp: +55 71 99641-8877
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <div class="fellow-footer-col">
+        <h4>Institucional</h4>
+        <ul>
+          <li>CNPJ: 53.697.977/0001-76</li>
+          <li>
+            Av. Tancredo Neves, 2539<br />
+            Caminho das Árvores, Salvador - BA<br />
+            CEP: 41.820-021<br />
+            Cond. CEO Salvador Shopping
+          </li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="fellow-footer-bottom">
+      <p>&copy; {new Date().getFullYear()} Grupo Fellow. Todos os direitos reservados.</p>
+    </div>
+  </div>
+</footer>
+
+<style>
+  .fellow-footer {
+    border-top: 1px solid #27272A;
+    background: #0A0A0A;
+    padding: 3rem 1.5rem 1.5rem;
+    margin-top: 2rem;
+    color: #A1A1AA;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .fellow-footer-inner {
+    max-width: 72rem;
+    margin: 0 auto;
+  }
+
+  .fellow-footer-brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid #1E1E22;
+  }
+
+  .fellow-footer-logo {
+    height: 2.5rem;
+    width: auto;
+  }
+
+  .fellow-footer-powered {
+    margin: 0;
+    color: #71717A;
+    font-size: 0.8rem;
+  }
+
+  .fellow-footer-powered strong {
+    color: #9F8CFF;
+  }
+
+  .fellow-footer-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    margin-bottom: 2rem;
+  }
+
+  @media (max-width: 600px) {
+    .fellow-footer-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .fellow-footer-col h4 {
+    color: #F5F5F5;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 0.75rem;
+  }
+
+  .fellow-footer-col ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .fellow-footer-col li {
+    margin-bottom: 0.4rem;
+  }
+
+  .fellow-footer-col a {
+    color: #A1A1AA;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+
+  .fellow-footer-col a:hover {
+    color: #9F8CFF;
+  }
+
+  .fellow-footer-bottom {
+    border-top: 1px solid #1E1E22;
+    padding-top: 1rem;
+    text-align: center;
+    color: #52525B;
+    font-size: 0.75rem;
+  }
+
+  .fellow-footer-bottom p {
+    margin: 0;
+  }
+</style>

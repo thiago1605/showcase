@@ -1,0 +1,189 @@
+---
+title: Autenticação de Usuários (Dashboard)
+description: API de autenticação JWT com suporte a 2FA TOTP para o dashboard Fellow Pay.
+---
+
+A API de autenticação gerencia o acesso ao dashboard Fellow Pay. Utiliza **JWT Bearer** com tokens de curta duração (15 min) e **refresh tokens** opacos de longa duração (30 dias). Suporte a **2FA TOTP** (Google Authenticator, Authy).
+
+:::note
+Esta API é para usuários do dashboard. Integrações externas usam `X-Api-Key` — veja [Autenticação](/getting-started/authentication).
+:::
+
+---
+
+## Login
+
+```http
+POST /auth/login
+```
+
+### Request body
+
+| Campo      | Tipo   | Obrigatório | Descrição        |
+|------------|--------|-------------|------------------|
+| `email`    | string | Sim         | E-mail do usuário |
+| `password` | string | Sim         | Senha             |
+
+### Response — sem 2FA ativado `200 OK`
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "a1b2c3...",
+  "expiresIn": 900
+}
+```
+
+### Response — com 2FA ativado `200 OK`
+
+```json
+{
+  "mfaPendingToken": "eyJhbGciOiJIUzI1NiIs...",
+  "requiresMfa": true
+}
+```
+
+O `mfaPendingToken` é válido por **5 minutos** e deve ser usado em `/auth/verify-mfa`.
+
+---
+
+## Verificar código 2FA
+
+```http
+POST /auth/verify-mfa
+```
+
+### Request body
+
+| Campo             | Tipo   | Obrigatório | Descrição                              |
+|-------------------|--------|-------------|----------------------------------------|
+| `mfaPendingToken` | string | Sim         | Token recebido no `/login`             |
+| `code`            | string | Sim         | Código de 6 dígitos do autenticador    |
+
+### Response `200 OK`
+
+```json
+{
+  "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+  "refreshToken": "a1b2c3...",
+  "expiresIn": 900
+}
+```
+
+---
+
+## Renovar token
+
+```http
+POST /auth/refresh
+```
+
+### Request body
+
+| Campo          | Tipo   | Obrigatório | Descrição            |
+|----------------|--------|-------------|----------------------|
+| `userId`       | uuid   | Sim         | ID do usuário        |
+| `refreshToken` | string | Sim         | Refresh token opaco  |
+
+### Response `200 OK`
+
+Retorna novo par `accessToken` + `refreshToken`. O refresh token anterior é invalidado.
+
+---
+
+## Logout
+
+```http
+POST /auth/logout
+```
+
+**Requer** `Authorization: Bearer {accessToken}`
+
+Revoga o refresh token do usuário. O access token atual continua válido até expirar (máx 15 min).
+
+Response: `204 No Content`
+
+---
+
+## Configurar 2FA (TOTP)
+
+### 1. Gerar QR Code
+
+```http
+GET /auth/2fa/setup
+```
+
+**Requer** `Authorization: Bearer {accessToken}`
+
+### Response `200 OK`
+
+```json
+{
+  "qrCodeUri": "otpauth://totp/FellowCore:email@example.com?secret=BASE32SECRET&issuer=FellowCore",
+  "secret": "BASE32SECRETKEY"
+}
+```
+
+Escaneie o QR Code com Google Authenticator, Authy ou qualquer app TOTP compatível.
+
+### 2. Ativar 2FA
+
+```http
+POST /auth/2fa/enable
+```
+
+**Requer** `Authorization: Bearer {accessToken}`
+
+| Campo  | Tipo   | Obrigatório | Descrição                        |
+|--------|--------|-------------|----------------------------------|
+| `code` | string | Sim         | Código de 6 dígitos para confirmar configuração |
+
+Response: `204 No Content`
+
+### 3. Desativar 2FA
+
+```http
+POST /auth/2fa/disable
+```
+
+**Requer** `Authorization: Bearer {accessToken}`
+
+| Campo      | Tipo   | Obrigatório | Descrição       |
+|------------|--------|-------------|-----------------|
+| `password` | string | Sim         | Senha atual para confirmar |
+
+Response: `204 No Content`
+
+---
+
+## Gerenciar usuários
+
+```http
+POST   /api/v1/users
+GET    /api/v1/users
+DELETE /api/v1/users/{id}
+```
+
+Todos os endpoints requerem `Authorization: Bearer {accessToken}`. Criação e exclusão exigem role `OWNER` ou `SUPER_ADMIN`.
+
+### Criar usuário
+
+| Campo      | Tipo   | Obrigatório | Descrição                              |
+|------------|--------|-------------|----------------------------------------|
+| `email`    | string | Sim         | E-mail único                           |
+| `name`     | string | Sim         | Nome de exibição                       |
+| `password` | string | Sim         | Senha (mín. 8 caracteres)              |
+| `role`     | string | Sim         | `OWNER`, `ADMIN`, `VIEWER`             |
+
+### Response `201 Created`
+
+```json
+{
+  "id": "usr_...",
+  "email": "usuario@example.com",
+  "name": "João Operador",
+  "role": "ADMIN",
+  "isTotpEnabled": false,
+  "createdAt": "2024-01-15T10:00:00Z"
+}
+```

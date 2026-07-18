@@ -1,0 +1,76 @@
+---
+title: Logs de Auditoria
+description: Referência da API de audit logs da Fellow Core.
+---
+
+A Fellow Core registra automaticamente todas as operações de escrita (criação, atualização, cancelamento) realizadas por integrações autenticadas. Os logs ficam disponíveis para consulta via API.
+
+---
+
+## Listar logs
+
+```http
+GET /api/v1/audit-logs?page=1&pageSize=20&action=transaction.created
+```
+
+### Headers obrigatórios
+
+| Header      | Descrição          |
+|-------------|-------------------|
+| `X-Api-Key` | Chave de API       |
+
+### Query params
+
+| Parâmetro  | Tipo   | Default | Descrição                                          |
+|------------|--------|---------|----------------------------------------------------|
+| `page`     | int    | 1       | Página atual                                       |
+| `pageSize` | int    | 20      | Itens por página (máx: 100)                        |
+| `action`   | string | —       | Filtra por ação específica (ex: `seller.created`) |
+
+### Response `200 OK`
+
+```json
+{
+  "items": [
+    {
+      "id": "log_...",
+      "action": "transaction.created",
+      "resourceId": "txn_...",
+      "ipAddress": "200.1.2.3",
+      "correlationId": "req-abc123",
+      "statusCode": 201,
+      "createdAt": "2024-01-15T10:30:00Z"
+    }
+  ],
+  "totalCount": 150,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+---
+
+## Ações registradas
+
+| Ação                       | Descrição                            |
+|----------------------------|--------------------------------------|
+| `transaction.created`      | Nova transação criada                |
+| `transaction.refunded`     | Estorno de transação                 |
+| `seller.created`           | Novo seller cadastrado               |
+| `seller.updated`           | Dados do seller atualizados          |
+| `customer.created`         | Novo cliente cadastrado              |
+| `customer.updated`         | Dados do cliente atualizados         |
+| `payout.created`           | Novo saque iniciado                  |
+| `subscription.created`     | Nova assinatura criada               |
+| `subscription.canceled`    | Assinatura cancelada                 |
+| `webhook_endpoint.created` | Novo endpoint de webhook cadastrado  |
+| `webhook_endpoint.deleted` | Endpoint de webhook removido         |
+| `api_key.rotated`          | Chave de API rotacionada             |
+| `user.created`             | Novo usuário criado                  |
+| `user.deleted`             | Usuário removido                     |
+
+---
+
+:::tip
+Use o campo `correlationId` para cruzar os logs de auditoria com os logs de aplicação (header `X-Correlation-Id` presente em todas as respostas).
+:::

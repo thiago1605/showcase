@@ -1,0 +1,105 @@
+---
+title: Relatórios Agendados
+description: Referência da API de relatórios agendados da Fellow Core.
+---
+
+Relatórios agendados permitem receber automaticamente por e-mail exportações em CSV ou PDF com frequência configurável.
+
+---
+
+## Criar relatório agendado
+
+```http
+POST /api/v1/scheduled-reports
+```
+
+### Request body
+
+| Campo        | Tipo   | Obrigatório | Descrição                                           |
+|--------------|--------|-------------|-----------------------------------------------------|
+| `reportType` | enum   | Sim         | `0` = Transações, `1` = Payouts                     |
+| `format`     | enum   | Sim         | `0` = CSV, `1` = PDF                                |
+| `frequency`  | enum   | Sim         | `0` = Diário, `1` = Semanal, `2` = Mensal           |
+| `recipients` | string | Sim         | E-mails separados por `;` (máx 5, cada um válido)   |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/scheduled-reports \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "reportType": 0,
+    "format": 0,
+    "frequency": 1,
+    "recipients": "admin@empresa.com;financeiro@empresa.com"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "reportType": 0,
+  "format": 0,
+  "frequency": 1,
+  "recipients": "admin@empresa.com;financeiro@empresa.com",
+  "enabled": true,
+  "createdAt": "2026-04-29T12:00:00Z"
+}
+```
+
+---
+
+## Listar relatórios
+
+```http
+GET /api/v1/scheduled-reports
+```
+
+### Response `200 OK`
+
+Array de relatórios do tenant.
+
+---
+
+## Consultar relatório
+
+```http
+GET /api/v1/scheduled-reports/{id}
+```
+
+---
+
+## Ativar relatório
+
+```http
+POST /api/v1/scheduled-reports/{id}/enable
+```
+
+### Response `204 No Content`
+
+---
+
+## Desativar relatório
+
+```http
+POST /api/v1/scheduled-reports/{id}/disable
+```
+
+### Response `204 No Content`
+
+---
+
+## Excluir relatório
+
+```http
+DELETE /api/v1/scheduled-reports/{id}
+```
+
+### Response `204 No Content`
+
+:::caution
+A exclusão é irreversível. Para pausar temporariamente, use o endpoint de desativação.
+:::

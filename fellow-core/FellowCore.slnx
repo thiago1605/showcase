@@ -1,0 +1,14 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/FellowCore.Api/FellowCore.Api.csproj" />
+    <Project Path="src/FellowCore.Application/FellowCore.Application.csproj" />
+    <Project Path="src/FellowCore.Domain/FellowCore.Domain.csproj" />
+    <Project Path="src/FellowCore.Infrastructure/FellowCore.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/FellowCore.Application.Tests/FellowCore.Application.Tests.csproj" />
+    <Project Path="tests/FellowCore.Domain.Tests/FellowCore.Domain.Tests.csproj" />
+    <Project Path="tests/FellowCore.Integration.Tests/FellowCore.Integration.Tests.csproj" />
+    <Project Path="tests/FellowCore.LoadTests/FellowCore.LoadTests.csproj" />
+  </Folder>
+</Solution>

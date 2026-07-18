@@ -1,0 +1,67 @@
+---
+title: Autenticação
+description: Como autenticar suas requisições na Fellow Core API.
+---
+
+## Header obrigatório
+
+Toda requisição à Fellow Core API exige o header de autenticação:
+
+| Header       | Descrição                                                |
+|--------------|----------------------------------------------------------|
+| `X-Api-Key`  | Chave de API única do tenant, gerada no cadastro.        |
+
+### Exemplo
+
+```bash
+curl https://api.fellowpay.com.br/api/v1/transactions \
+  -H "X-Api-Key: sk_live_abc123..."
+```
+
+## API Key
+
+Cada tenant possui uma **API Key única** gerada no momento do cadastro via Fellow Pay. Ela é usada para:
+
+- Autenticar todas as chamadas REST.
+- Identificar automaticamente o tenant e seu provedor de pagamento configurado.
+
+:::caution[Segurança]
+- Nunca exponha sua API Key em código frontend ou repositórios públicos.
+- Use variáveis de ambiente para armazenar a chave.
+- Rotacione a chave periodicamente.
+:::
+
+## Rate Limiting
+
+A API possui limites de taxa para proteção contra abuso:
+
+| Política     | Limite             | Janela   |
+|--------------|--------------------|----------|
+| `fixed`      | 100 requisições    | 1 minuto |
+| `webhooks`   | 500 requisições    | 1 minuto |
+
+Quando o limite é atingido, a API retorna `429 Too Many Requests` com o header `Retry-After`.
+
+## Respostas de erro
+
+Erros seguem o formato [RFC 7807 Problem Details](https://datatracker.ietf.org/doc/html/rfc7807):
+
+```json
+{
+  "status": 401,
+  "title": "Não autorizado",
+  "detail": "API Key inválida ou ausente.",
+  "errorCode": "Auth.InvalidKey"
+}
+```
+
+| Status | Significado                                |
+|--------|--------------------------------------------|
+| `400`  | Regra de negócio violada                   |
+| `401`  | Autenticação inválida                      |
+| `404`  | Recurso não encontrado                     |
+| `409`  | Conflito (idempotência ou concorrência)    |
+| `422`  | Dados inválidos                            |
+| `429`  | Rate limit excedido                        |
+| `500`  | Erro interno                               |
+| `502`  | Erro no processamento de pagamento         |

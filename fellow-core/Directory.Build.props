@@ -1,0 +1,29 @@
+<Project>
+  <PropertyGroup Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">
+    <BaseIntermediateOutputPath>/tmp/obj/$(MSBuildProjectName)/</BaseIntermediateOutputPath>
+    <BaseOutputPath>/tmp/bin/$(MSBuildProjectName)/</BaseOutputPath>
+  </PropertyGroup>
+
+  <ItemGroup Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">
+    <Compile Remove="**\obj\**\*.cs" />
+    <Compile Remove="**\bin\**\*.cs" />
+  </ItemGroup>
+
+  <!--
+    SUP1 — OpenTelemetry.Api NU1902 advisory suppression
+    Advisory : GHSA-g94r-2vxg-569j (moderate)
+    Package  : OpenTelemetry.Api (transitive, pulled in by OpenTelemetry.Extensions.Hosting,
+               OpenTelemetry.Instrumentation.AspNetCore, OpenTelemetry.Instrumentation.Http)
+    Status   : No fixed version published as of 2026-05-03. Upgrading direct packages to any
+               version up to and including 1.13.1 still resolves the same vulnerable transitive.
+    Impact   : Moderate — affects telemetry pipeline only; no direct data-path or auth exposure.
+               OpenTelemetry is used for internal metrics/traces and has no inbound attack surface
+               in this deployment (Prometheus scrape endpoint is not publicly reachable).
+    Action   : Re-evaluate on every OpenTelemetry release until a patched version ships.
+               Review date: 2026-08-03.
+    Tracking : docs/audit_backlog.md SUP1
+  -->
+  <PropertyGroup>
+    <MSBuildWarningsAsMessages>$(MSBuildWarningsAsMessages);NU1902</MSBuildWarningsAsMessages>
+  </PropertyGroup>
+</Project>

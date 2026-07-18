@@ -1,0 +1,40 @@
+{
+  "scenario": "Real Money Flow Stress Test",
+  "verdict": "PASS — REAL MONEY FLOW SAFE FOR PRODUCTION",
+  "phases": {
+    "Phase 2 — Credit Storm": {
+      "tx_created": 2,
+      "tx_failed": 249,
+      "webhooks_sent": 1,
+      "webhooks_accepted": 1,
+      "webhooks_rejected": 0,
+      "ledger_credits": 1
+    },
+    "Phase 3 — Credit+Payout Race": {
+      "payout_attempted": 473344,
+      "payout_accepted": 0,
+      "payout_rejected": 72305,
+      "negative_balances": 0
+    },
+    "Phase 4 — Webhook Deduplication": {
+      "duplicate_webhooks_sent": 0,
+      "duplicate_credits_detected": 0
+    },
+    "Phase 5 — Settlement": {
+      "settlements_triggered": 0
+    }
+  },
+  "invariants": {
+    "negative_balance": 0,
+    "duplicate_credit": 0,
+    "ledger_invariant_broken": 0
+  },
+  "performance": {
+    "avg_tx_latency_ms": 2919.2430278884462,
+    "p95_tx_latency_ms": 4873,
+    "avg_webhook_latency_ms": 61,
+    "p95_webhook_latency_ms": 61,
+    "avg_payout_latency_ms": 3.7523682564899947,
+    "p95_payout_latency_ms": 15
+  }
+}

@@ -1,0 +1,1035 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fellow Pay - Checkout</title>
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <style>
+    :root {
+      --fellow-black: #0A0A0A;
+      --fellow-black-deep: #000000;
+      --fellow-surface: #18181B;
+      --fellow-border: #27272A;
+      --fellow-text: #F5F5F5;
+      --fellow-text-secondary: #A1A1AA;
+      --fellow-purple: #7B61FF;
+      --fellow-purple-dark: #6D4CFF;
+      --fellow-purple-light: #9F8CFF;
+      --fellow-gradient: linear-gradient(135deg, #7B61FF 0%, #6D4CFF 50%, #9F8CFF 100%);
+      --fellow-success: #22C55E;
+      --fellow-amber: #F59E0B;
+      --fellow-error: #EF4444;
+      --fellow-info: #3B82F6;
+      --radius: 12px;
+      --radius-sm: 8px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Inter', 'Segoe UI', Roboto, sans-serif;
+      background: var(--fellow-black);
+      color: var(--fellow-text);
+      min-height: 100vh;
+    }
+
+    /* --- Header --- */
+    .header {
+      background: var(--fellow-black-deep);
+      border-bottom: 1px solid var(--fellow-border);
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header-logo {
+      height: 32px;
+      filter: brightness(0) invert(1);
+    }
+    .header-badge {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      padding: 3px 8px;
+      border-radius: 4px;
+      background: rgba(123, 97, 255, 0.15);
+      color: var(--fellow-purple-light);
+      border: 1px solid rgba(123, 97, 255, 0.3);
+    }
+    .header-toggle {
+      background: none;
+      border: 1px solid var(--fellow-border);
+      color: var(--fellow-text-secondary);
+      padding: 6px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: auto;
+    }
+    .header-toggle:hover {
+      border-color: var(--fellow-purple);
+      color: var(--fellow-text);
+    }
+
+    /* --- Config Panel --- */
+    .config-panel {
+      background: var(--fellow-black-deep);
+      border-bottom: 1px solid var(--fellow-border);
+      padding: 0;
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    .config-panel.open {
+      max-height: 200px;
+      padding: 16px 24px;
+    }
+    .config-grid {
+      max-width: 720px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 12px;
+    }
+    .config-grid label {
+      font-size: 11px;
+      color: var(--fellow-text-secondary);
+      margin-bottom: 4px;
+      display: block;
+      text-transform: none;
+      letter-spacing: 0;
+      font-weight: 500;
+    }
+    .config-grid input {
+      width: 100%;
+      background: var(--fellow-surface);
+      border: 1px solid var(--fellow-border);
+      color: var(--fellow-text);
+      padding: 8px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: 'SF Mono', 'Fira Code', monospace;
+    }
+    .config-grid input:focus {
+      border-color: var(--fellow-purple);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+    }
+    .config-grid input::placeholder { color: #52525B; }
+
+    /* --- Layout --- */
+    .main {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 40px 20px 60px;
+    }
+
+    /* --- Page Title --- */
+    .page-title {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .page-title h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--fellow-text);
+      margin-bottom: 6px;
+    }
+    .page-title p {
+      font-size: 14px;
+      color: var(--fellow-text-secondary);
+    }
+
+    /* --- Tabs --- */
+    .tabs {
+      display: flex;
+      background: var(--fellow-surface);
+      border-radius: var(--radius);
+      padding: 4px;
+      margin-bottom: 24px;
+      border: 1px solid var(--fellow-border);
+    }
+    .tab {
+      flex: 1;
+      padding: 10px 16px;
+      text-align: center;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      background: transparent;
+      color: var(--fellow-text-secondary);
+      border: none;
+      border-radius: var(--radius-sm);
+      transition: all 0.2s;
+    }
+    .tab:hover { color: var(--fellow-text); }
+    .tab.active {
+      background: var(--fellow-gradient);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(123, 97, 255, 0.3);
+    }
+
+    /* --- Card / Panel --- */
+    .panel {
+      background: var(--fellow-surface);
+      border: 1px solid var(--fellow-border);
+      border-radius: var(--radius);
+      padding: 24px;
+      margin-bottom: 20px;
+    }
+    .panel-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--fellow-text);
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--fellow-border);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    /* --- Form --- */
+    label {
+      display: block;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--fellow-text-secondary);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    input, select {
+      width: 100%;
+      padding: 10px 12px;
+      background: var(--fellow-black);
+      border: 1px solid var(--fellow-border);
+      border-radius: var(--radius-sm);
+      color: var(--fellow-text);
+      font-size: 14px;
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: var(--fellow-purple);
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+    }
+    input::placeholder { color: #52525B; }
+    select { cursor: pointer; }
+    select option { background: var(--fellow-surface); color: var(--fellow-text); }
+
+    .row { display: flex; gap: 12px; }
+    .row > div { flex: 1; }
+
+    /* --- Buttons --- */
+    button {
+      width: 100%;
+      padding: 12px 20px;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .btn-primary {
+      background: var(--fellow-gradient);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(123, 97, 255, 0.25);
+    }
+    .btn-primary:hover {
+      box-shadow: 0 4px 20px rgba(123, 97, 255, 0.4);
+      transform: translateY(-1px);
+    }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled {
+      background: var(--fellow-border);
+      color: #52525B;
+      cursor: not-allowed;
+      box-shadow: none;
+      transform: none;
+    }
+    .btn-boleto {
+      background: transparent;
+      color: var(--fellow-purple-light);
+      border: 1px solid var(--fellow-purple);
+      margin-top: 0;
+    }
+    .btn-boleto:hover {
+      background: rgba(123, 97, 255, 0.1);
+    }
+
+    /* --- Express Checkout --- */
+    #express-checkout-element {
+      margin-bottom: 16px;
+      min-height: 48px;
+      border-radius: var(--radius-sm);
+    }
+
+    .separator {
+      display: flex;
+      align-items: center;
+      margin: 20px 0;
+      color: #52525B;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .separator::before, .separator::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--fellow-border);
+    }
+    .separator span { padding: 0 14px; }
+
+    /* --- Card Element --- */
+    #card-element {
+      padding: 12px 14px;
+      background: var(--fellow-black);
+      border: 1px solid var(--fellow-border);
+      border-radius: var(--radius-sm);
+      margin-bottom: 14px;
+      transition: border-color 0.2s;
+    }
+    #card-element.StripeElement--focus {
+      border-color: var(--fellow-purple);
+      box-shadow: 0 0 0 3px rgba(123, 97, 255, 0.15);
+    }
+
+    /* --- Results --- */
+    .result {
+      padding: 16px;
+      border-radius: var(--radius-sm);
+      margin-top: 20px;
+      font-size: 13px;
+      display: none;
+      border: 1px solid;
+    }
+    .result.success {
+      background: rgba(34, 197, 94, 0.08);
+      color: var(--fellow-success);
+      border-color: rgba(34, 197, 94, 0.2);
+      display: block;
+    }
+    .result.error {
+      background: rgba(239, 68, 68, 0.08);
+      color: var(--fellow-error);
+      border-color: rgba(239, 68, 68, 0.2);
+      display: block;
+    }
+    .result.info {
+      background: rgba(59, 130, 246, 0.08);
+      color: var(--fellow-info);
+      border-color: rgba(59, 130, 246, 0.2);
+      display: block;
+    }
+
+    /* --- Boleto Link --- */
+    .boleto-link {
+      display: block;
+      padding: 14px;
+      background: rgba(34, 197, 94, 0.08);
+      border: 1px solid rgba(34, 197, 94, 0.2);
+      border-radius: var(--radius-sm);
+      color: var(--fellow-success);
+      text-decoration: none;
+      text-align: center;
+      font-weight: 700;
+      margin-top: 12px;
+      transition: all 0.2s;
+    }
+    .boleto-link:hover {
+      background: rgba(34, 197, 94, 0.15);
+    }
+
+    /* --- Wallet Badges --- */
+    .wallet-badge {
+      display: inline-block;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .wallet-badge.apple { background: #fff; color: #000; }
+    .wallet-badge.google { background: #4285f4; color: #fff; }
+    .wallet-badge.link { background: #00d66f; color: #fff; }
+
+    /* --- Spinner --- */
+    .spinner {
+      display: inline-block;
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* --- Log Panel --- */
+    .log-panel {
+      background: var(--fellow-black-deep);
+      border: 1px solid var(--fellow-border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 24px;
+    }
+    .log-header {
+      padding: 12px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid var(--fellow-border);
+      cursor: pointer;
+    }
+    .log-header span {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--fellow-text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+    .log-header .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--fellow-success);
+      display: inline-block;
+      margin-right: 8px;
+    }
+    .log-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .log-body.open {
+      max-height: 300px;
+    }
+    .log-body pre {
+      padding: 12px 16px;
+      font-size: 11px;
+      font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
+      color: var(--fellow-text-secondary);
+      overflow-y: auto;
+      max-height: 280px;
+      white-space: pre-wrap;
+      line-height: 1.6;
+    }
+
+    /* --- Tab Content --- */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* --- Footer --- */
+    .footer {
+      text-align: center;
+      padding: 24px 0 0;
+      font-size: 11px;
+      color: #52525B;
+    }
+    .footer a {
+      color: var(--fellow-purple-light);
+      text-decoration: none;
+    }
+
+    /* --- Responsive --- */
+    @media (max-width: 540px) {
+      .config-grid { grid-template-columns: 1fr; }
+      .header { padding: 12px 16px; }
+      .main { padding: 24px 16px 40px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-left">
+      <img src="/fellow-pay-logo.png" alt="Fellow Pay" class="header-logo">
+      <span class="header-badge">Sandbox</span>
+    </div>
+    <button class="header-toggle" onclick="toggleConfig()">Configuracoes</button>
+  </header>
+
+  <!-- Config Panel (collapsed by default) -->
+  <div class="config-panel" id="config-panel">
+    <div class="config-grid">
+      <div>
+        <label>API URL (vazio = mesma origem)</label>
+        <input id="cfg-api-url" value="" placeholder="https://api.fellowpay.com.br">
+      </div>
+      <div>
+        <label>API Key</label>
+        <input id="cfg-api-key" value="" placeholder="pk_live_...">
+      </div>
+      <div>
+        <label>Stripe Publishable Key</label>
+        <input id="cfg-stripe-pk" value="" placeholder="pk_test_...">
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <main class="main">
+
+    <div class="page-title">
+      <h1>Checkout</h1>
+      <p>Ambiente de testes — nenhuma cobranca real sera realizada</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="tabs">
+      <button class="tab active" data-tab="card" onclick="switchTab('card')">Cartao / Wallet</button>
+      <button class="tab" data-tab="boleto" onclick="switchTab('boleto')">Boleto</button>
+    </div>
+
+    <!-- Payment Details -->
+    <div class="panel">
+      <div class="panel-title">Detalhes do pagamento</div>
+      <div class="row">
+        <div>
+          <label>Valor (R$)</label>
+          <input id="amount" type="number" value="10.00" min="1" step="0.01">
+        </div>
+        <div>
+          <label>Parcelas</label>
+          <select id="installments">
+            <option value="1">1x sem juros</option>
+            <option value="2">2x sem juros</option>
+            <option value="3">3x sem juros</option>
+            <option value="6">6x sem juros</option>
+            <option value="12">12x sem juros</option>
+          </select>
+        </div>
+      </div>
+      <label>Descricao</label>
+      <input id="description" value="Teste checkout Fellow Pay" placeholder="Descricao do pagamento">
+    </div>
+
+    <!-- Payer Details -->
+    <div class="panel">
+      <div class="panel-title">Dados do pagador</div>
+      <label>Nome completo</label>
+      <input id="payer-name" value="Maria Silva" placeholder="Nome do pagador">
+      <div class="row">
+        <div>
+          <label>CPF</label>
+          <input id="payer-doc" value="52998224725" placeholder="000.000.000-00">
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="payer-email" value="maria@teste.com" placeholder="email@exemplo.com">
+        </div>
+      </div>
+      <label>Seller ID <span style="font-weight:400;text-transform:none;letter-spacing:0;">(opcional)</span></label>
+      <input id="seller-id" value="" placeholder="GUID do seller — vazio para plataforma">
+    </div>
+
+    <!-- Card / Wallet Tab -->
+    <div class="tab-content active" id="tab-card">
+      <div class="panel">
+        <div class="panel-title">Forma de pagamento</div>
+
+        <!-- Setup Required Message -->
+        <div id="setup-required" style="text-align:center;padding:20px 0;">
+          <p style="color:var(--fellow-text-secondary);font-size:13px;margin-bottom:8px;">Carregando metodos de pagamento...</p>
+        </div>
+
+        <!-- Express Checkout Element -->
+        <div id="express-checkout-element"></div>
+        <div id="express-checkout-message" style="font-size:12px;margin-bottom:8px;"></div>
+
+        <div class="separator" id="card-separator" style="display:none;"><span>ou pague com cartao</span></div>
+
+        <!-- Card Element -->
+        <label id="card-label" style="display:none;">Numero do cartao</label>
+        <div id="card-element"></div>
+        <div id="card-errors" style="color:var(--fellow-error);font-size:12px;margin-bottom:12px;"></div>
+
+        <button id="btn-pay-card" class="btn-primary" onclick="payWithCard()" style="display:none;">
+          Pagar
+        </button>
+      </div>
+    </div>
+
+    <!-- Boleto Tab -->
+    <div class="tab-content" id="tab-boleto">
+      <div class="panel">
+        <div class="panel-title">Pagamento via boleto</div>
+        <p style="font-size:13px;color:var(--fellow-text-secondary);margin-bottom:16px;line-height:1.5;">
+          Um boleto bancario sera gerado via Stripe. O CPF informado acima sera utilizado para emissao.
+        </p>
+        <button id="btn-pay-boleto" class="btn-boleto" onclick="payWithBoleto()">
+          Gerar boleto
+        </button>
+        <div id="boleto-result"></div>
+      </div>
+    </div>
+
+    <!-- Result -->
+    <div id="result" class="result"></div>
+
+    <!-- Log -->
+    <div class="log-panel">
+      <div class="log-header" onclick="toggleLog()">
+        <span><span class="dot"></span>Eventos</span>
+        <span id="log-toggle-icon" style="font-size:16px;color:#52525B;">+</span>
+      </div>
+      <div class="log-body" id="log-body">
+        <pre id="log"></pre>
+      </div>
+    </div>
+
+    <div class="footer">
+      Powered by <a href="https://fellowpay.com.br">Fellow Pay</a> — Ambiente sandbox
+    </div>
+  </main>
+
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    let stripe, elements, cardElement, expressCheckoutElement;
+    let pendingClientSecret = null;
+    let pendingTxResult = null;
+
+    function log(msg) {
+      const el = document.getElementById('log');
+      const time = new Date().toLocaleTimeString();
+      el.textContent = `[${time}] ${msg}\n` + el.textContent;
+    }
+
+    function escapeHtml(str) {
+      const d = document.createElement('div');
+      d.textContent = str;
+      return d.innerHTML;
+    }
+
+    function isSafeUrl(url) {
+      try { const u = new URL(url); return u.protocol === 'https:'; } catch { return false; }
+    }
+
+    function showResult(type, msg) {
+      const el = document.getElementById('result');
+      el.className = `result ${type}`;
+      el.textContent = msg;
+    }
+
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.toggle('active', c.id === `tab-${tab}`));
+    }
+
+    function toggleConfig() {
+      document.getElementById('config-panel').classList.toggle('open');
+    }
+
+    function toggleLog() {
+      const body = document.getElementById('log-body');
+      const icon = document.getElementById('log-toggle-icon');
+      body.classList.toggle('open');
+      icon.textContent = body.classList.contains('open') ? '−' : '+';
+    }
+
+    function getConfig() {
+      const apiUrlInput = document.getElementById('cfg-api-url').value.replace(/\/+$/, '');
+      return {
+        apiUrl: apiUrlInput || window.location.origin,
+        apiKey: document.getElementById('cfg-api-key').value,
+        stripePk: document.getElementById('cfg-stripe-pk').value,
+      };
+    }
+
+    function getPayerData() {
+      return {
+        name: document.getElementById('payer-name').value,
+        document: document.getElementById('payer-doc').value,
+        email: document.getElementById('payer-email').value,
+      };
+    }
+
+    function getAmount() {
+      return parseFloat(document.getElementById('amount').value);
+    }
+
+    // Initialize Stripe with Express Checkout Element
+    async function initStripe() {
+      const { stripePk } = getConfig();
+      if (!stripePk) {
+        log('ERRO: Stripe Publishable Key nao configurada');
+        return false;
+      }
+
+      log('Criando PaymentIntent para Express Checkout...');
+      const txResult = await createTransaction(0);
+      if (!txResult) {
+        log('Falha ao criar PaymentIntent. Usando modo cartao apenas.');
+        initCardElementOnly();
+        return false;
+      }
+
+      pendingClientSecret = txResult.payment.clientSecret;
+      pendingTxResult = txResult;
+      log('PaymentIntent: ' + txResult.payment.transactionId);
+
+      rebuildStripeElements(txResult);
+
+      log('Stripe inicializado');
+      return true;
+    }
+
+    function showPaymentElements() {
+      const setup = document.getElementById('setup-required');
+      if (setup) setup.style.display = 'none';
+      document.getElementById('card-separator').style.display = '';
+      document.getElementById('card-label').style.display = '';
+      document.getElementById('btn-pay-card').style.display = '';
+    }
+
+    function showSetupMessage(msg) {
+      const setup = document.getElementById('setup-required');
+      if (setup) {
+        setup.style.display = '';
+        setup.innerHTML = `<p style="color:var(--fellow-amber);font-size:13px;">${msg}</p>
+          <p style="color:var(--fellow-text-secondary);font-size:12px;margin-top:8px;">
+            Informe a API Key no painel de <strong>Configuracoes</strong> acima.
+          </p>`;
+      }
+    }
+
+    function initCardElementOnly() {
+      const { stripePk } = getConfig();
+      const stripeOpts = pendingTxResult?.payment?.connectedAccountId
+        ? { stripeAccount: pendingTxResult.payment.connectedAccountId }
+        : undefined;
+      stripe = Stripe(stripePk, stripeOpts);
+      elements = stripe.elements({
+        appearance: {
+          theme: 'night',
+          variables: { colorPrimary: '#7B61FF', colorBackground: '#0A0A0A', colorText: '#F5F5F5', borderRadius: '8px' },
+        },
+      });
+      cardElement = elements.create('card', {
+        style: {
+          base: { fontSize: '14px', color: '#F5F5F5', '::placeholder': { color: '#52525B' }, iconColor: '#A1A1AA' },
+          invalid: { color: '#EF4444', iconColor: '#EF4444' }
+        }
+      });
+      cardElement.mount('#card-element');
+      cardElement.on('change', e => {
+        document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+      });
+      showPaymentElements();
+      document.getElementById('express-checkout-message').innerHTML =
+        '<span style="color:var(--fellow-text-secondary);">Express Checkout indisponivel</span>';
+    }
+
+    function rebuildStripeElements(txResult) {
+      const { stripePk } = getConfig();
+      const connectedAccount = txResult.payment.connectedAccountId;
+      const stripeOpts = connectedAccount ? { stripeAccount: connectedAccount } : undefined;
+
+      // Unmount old elements before recreating
+      if (cardElement) { try { cardElement.unmount(); } catch (_) {} cardElement = null; }
+      if (expressCheckoutElement) { try { expressCheckoutElement.unmount(); } catch (_) {} expressCheckoutElement = null; }
+
+      stripe = Stripe(stripePk, stripeOpts);
+      elements = stripe.elements({
+        clientSecret: txResult.payment.clientSecret,
+        appearance: {
+          theme: 'night',
+          variables: { colorPrimary: '#7B61FF', colorBackground: '#0A0A0A', colorText: '#F5F5F5', colorDanger: '#EF4444', borderRadius: '8px' },
+        },
+      });
+
+      // Remount card element
+      cardElement = elements.create('card', {
+        style: {
+          base: { fontSize: '14px', color: '#F5F5F5', '::placeholder': { color: '#52525B' }, iconColor: '#A1A1AA' },
+          invalid: { color: '#EF4444', iconColor: '#EF4444' }
+        }
+      });
+      cardElement.mount('#card-element');
+      cardElement.on('change', e => {
+        document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+      });
+
+      // Remount express checkout element
+      expressCheckoutElement = elements.create('expressCheckout', {
+        buttonType: { applePay: 'buy', googlePay: 'buy' },
+        buttonTheme: { applePay: 'white-outline', googlePay: 'white' },
+        layout: { maxColumns: 3, maxRows: 1 },
+      });
+      expressCheckoutElement.mount('#express-checkout-element');
+      showPaymentElements();
+      attachExpressCheckoutHandlers();
+    }
+
+    function attachExpressCheckoutHandlers() {
+      expressCheckoutElement.on('ready', (event) => {
+        const available = event.availablePaymentMethods || {};
+        const methods = [];
+        if (available.applePay) methods.push('Apple Pay');
+        if (available.googlePay) methods.push('Google Pay');
+        if (available.link) methods.push('Link');
+        if (methods.length > 0) {
+          log('Wallets disponiveis: ' + methods.join(', '));
+          document.getElementById('express-checkout-message').innerHTML =
+            '<span style="color:var(--fellow-success);">' + methods.join(' &bull; ') + '</span>';
+        } else {
+          log('Nenhuma wallet detectada');
+          document.getElementById('express-checkout-message').innerHTML =
+            '<span style="color:var(--fellow-text-secondary);">Nenhuma wallet disponivel neste dispositivo</span>';
+        }
+      });
+
+      expressCheckoutElement.on('confirm', async (event) => {
+        log('Confirmando via ' + (event.expressPaymentType || 'wallet') + '...');
+        const { error } = await stripe.confirmPayment({
+          elements,
+          clientSecret: pendingClientSecret,
+          confirmParams: { return_url: window.location.href },
+          redirect: 'if_required',
+        });
+        if (error) {
+          log('ERRO: ' + error.message);
+          showResult('error', escapeHtml(error.message));
+        } else {
+          const { paymentIntent } = await stripe.retrievePaymentIntent(pendingClientSecret);
+          log('Sucesso via ' + (event.expressPaymentType || 'wallet') + ' — ' + paymentIntent.status);
+          const walletType = event.expressPaymentType || 'unknown';
+          const badgeClass = walletType === 'apple_pay' ? 'apple' : walletType === 'google_pay' ? 'google' : 'link';
+          showResult('success',
+            `<span class="wallet-badge ${escapeHtml(badgeClass)}">${escapeHtml(walletType.replace('_', ' '))}</span><br><br>` +
+            `<strong>PaymentIntent:</strong> ${escapeHtml(paymentIntent.id)}<br>` +
+            `<strong>Status:</strong> ${escapeHtml(paymentIntent.status)}<br>` +
+            `<strong>Transacao:</strong> ${escapeHtml(pendingTxResult.internalId)}`
+          );
+          refreshPaymentIntent();
+        }
+      });
+
+      expressCheckoutElement.on('cancel', () => {
+        log('Pagamento cancelado pelo usuario');
+      });
+    }
+
+    async function refreshPaymentIntent() {
+      const txResult = await createTransaction(0);
+      if (txResult) {
+        pendingClientSecret = txResult.payment.clientSecret;
+        pendingTxResult = txResult;
+        rebuildStripeElements(txResult);
+        log('Novo PaymentIntent: ' + txResult.payment.transactionId);
+      }
+    }
+
+    async function createTransaction(paymentType) {
+      const { apiUrl, apiKey } = getConfig();
+      const payer = getPayerData();
+      const amount = getAmount();
+      const installments = parseInt(document.getElementById('installments').value);
+      const description = document.getElementById('description').value;
+      const sellerId = document.getElementById('seller-id').value || null;
+
+      const body = { sellerId, amount, paymentType, installments, description,
+        payer: { name: payer.name, document: payer.document, email: payer.email } };
+
+      log(`Transacao: R$${amount} | tipo=${paymentType} | ${installments}x`);
+
+      try {
+        const resp = await fetch(`${apiUrl}/api/v1/transactions`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Api-Key': apiKey,
+            'Idempotency-Key': crypto.randomUUID(),
+          },
+          body: JSON.stringify(body),
+        });
+
+        const json = await resp.json();
+        log(`API ${resp.status}: ${JSON.stringify(json).substring(0, 150)}`);
+
+        if (!resp.ok || !json.success) {
+          showResult('error', `Erro: ${escapeHtml(JSON.stringify(json.errors || json))}`);
+          return null;
+        }
+        return json.data;
+      } catch (err) {
+        log(`ERRO na requisicao: ${err.message}`);
+        showResult('error', `Falha na conexao: ${escapeHtml(err.message)}. Tente novamente.`);
+        return null;
+      }
+    }
+
+    async function payWithCard() {
+      if (!stripe) return;
+
+      const btn = document.getElementById('btn-pay-card');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Processando...';
+
+      try {
+        let clientSecret = pendingClientSecret;
+        let txResult = pendingTxResult;
+
+        if (!clientSecret) {
+          txResult = await createTransaction(0);
+          if (!txResult) { btn.disabled = false; btn.textContent = 'Pagar'; return; }
+          clientSecret = txResult.payment.clientSecret;
+          pendingClientSecret = clientSecret;
+          pendingTxResult = txResult;
+          rebuildStripeElements(txResult);
+        }
+
+        const { error, paymentIntent } = await stripe.confirmCardPayment(clientSecret, {
+          payment_method: {
+            card: cardElement,
+            billing_details: {
+              name: document.getElementById('payer-name').value,
+              email: document.getElementById('payer-email').value,
+            }
+          }
+        });
+
+        if (error) {
+          log('ERRO: ' + error.message);
+          showResult('error', escapeHtml(error.message));
+        } else {
+          log('Sucesso — ' + paymentIntent.status);
+          showResult('success',
+            `<strong>Pagamento aprovado</strong><br><br>` +
+            `<strong>PaymentIntent:</strong> ${escapeHtml(paymentIntent.id)}<br>` +
+            `<strong>Status:</strong> ${escapeHtml(paymentIntent.status)}<br>` +
+            `<strong>Transacao:</strong> ${escapeHtml(txResult.internalId)}`
+          );
+          pendingClientSecret = null;
+          pendingTxResult = null;
+          refreshPaymentIntent();
+        }
+      } catch (err) {
+        log('ERRO: ' + err.message);
+        showResult('error', escapeHtml(err.message));
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Pagar';
+    }
+
+    async function payWithBoleto() {
+      const btn = document.getElementById('btn-pay-boleto');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner"></span> Gerando...';
+
+      try {
+        const txResult = await createTransaction(3);
+        if (!txResult) { btn.disabled = false; btn.textContent = 'Gerar boleto'; return; }
+
+        const boletoUrl = txResult.payment.boletoUrl;
+        const resultDiv = document.getElementById('boleto-result');
+
+        if (boletoUrl && isSafeUrl(boletoUrl)) {
+          log('Boleto gerado');
+          const a = document.createElement('a');
+          a.href = boletoUrl;
+          a.target = '_blank';
+          a.className = 'boleto-link';
+          a.textContent = 'Abrir boleto';
+          resultDiv.replaceChildren(a);
+          showResult('success',
+            `<strong>Boleto gerado</strong><br><br>` +
+            `<strong>PaymentIntent:</strong> ${escapeHtml(txResult.payment.transactionId)}<br>` +
+            `<strong>Transacao:</strong> ${escapeHtml(txResult.internalId)}<br>` +
+            `<a href="${escapeHtml(boletoUrl)}" target="_blank" style="color:var(--fellow-success);font-weight:700;">Visualizar boleto</a>`
+          );
+        } else {
+          log('Boleto sem URL valida');
+          showResult('info',
+            `<strong>Transacao criada</strong><br><br>` +
+            `<strong>PaymentIntent:</strong> ${escapeHtml(txResult.payment.transactionId)}<br>` +
+            `<strong>Transacao:</strong> ${escapeHtml(txResult.internalId)}<br>` +
+            `Verifique o status no Stripe Dashboard.`
+          );
+        }
+      } catch (err) {
+        log('ERRO: ' + err.message);
+        showResult('error', escapeHtml(err.message));
+      }
+
+      btn.disabled = false;
+      btn.textContent = 'Gerar boleto';
+    }
+
+    // Read URL query params to pre-fill config.
+    // L4 SECURITY: API keys MUST NOT be passed via query parameters — they appear in server
+    // access logs, browser history, and Referer headers. Use the config panel UI instead.
+    // Supported params: sellerId, amount, description, stripePk, apiUrl.
+    // The ?apiKey= param is intentionally NOT supported.
+    function loadFromQueryParams() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('sellerId')) document.getElementById('seller-id').value = params.get('sellerId');
+      if (params.get('amount')) document.getElementById('amount').value = params.get('amount');
+      if (params.get('description')) document.getElementById('description').value = params.get('description');
+      if (params.get('stripePk')) document.getElementById('cfg-stripe-pk').value = params.get('stripePk');
+      if (params.get('apiUrl')) document.getElementById('cfg-api-url').value = params.get('apiUrl');
+    }
+
+    // Fetch checkout config from backend (Stripe PK + default seller only — API key is NEVER served publicly)
+    async function loadCheckoutConfig() {
+      const { apiUrl } = getConfig();
+      try {
+        const resp = await fetch(`${apiUrl}/checkout/config`);
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data.stripePk && !document.getElementById('cfg-stripe-pk').value) {
+            document.getElementById('cfg-stripe-pk').value = data.stripePk;
+            log('Stripe PK carregada do servidor');
+          }
+          if (data.sellerId && !document.getElementById('seller-id').value) {
+            document.getElementById('seller-id').value = data.sellerId;
+            log('Seller ID carregado do servidor: ' + data.sellerId);
+          }
+        }
+      } catch (e) {
+        log('Nao foi possivel carregar config do servidor: ' + e.message);
+      }
+    }
+
+    // Auto-init
+    document.getElementById('cfg-stripe-pk').addEventListener('change', () => {
+      if (document.getElementById('cfg-stripe-pk').value) initStripe();
+    });
+
+    window.addEventListener('load', async () => {
+      loadFromQueryParams();
+      await loadCheckoutConfig();
+
+      const pk = document.getElementById('cfg-stripe-pk').value;
+      const apiKey = document.getElementById('cfg-api-key').value;
+
+      if (pk && apiKey) {
+        initStripe();
+      } else if (pk && !apiKey) {
+        log('Configure a API Key no painel de Configuracoes para iniciar.');
+        showSetupMessage('API Key nao configurada');
+      } else if (!pk) {
+        log('Stripe PK nao encontrada. Configure manualmente ou verifique o servidor.');
+        showSetupMessage('Stripe Publishable Key nao encontrada');
+      }
+    });
+  </script>
+</body>
+</html>

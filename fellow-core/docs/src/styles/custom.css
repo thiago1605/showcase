@@ -1,0 +1,157 @@
+/* Fellow Core — Institutional Dark Theme */
+
+:root {
+  --fellow-gradient: linear-gradient(135deg, #7B61FF 0%, #6D4CFF 50%, #9F8CFF 100%);
+  --fellow-primary: #7B61FF;
+  --fellow-primary-dark: #6D4CFF;
+  --fellow-primary-light: #9F8CFF;
+}
+
+/* Force dark mode */
+:root,
+[data-theme='light'] {
+  --sl-color-bg: #0A0A0A;
+  --sl-color-bg-nav: #0A0A0A;
+  --sl-color-bg-sidebar: #0F0F11;
+  --sl-color-bg-inline-code: #18181B;
+  --sl-color-hairline: #27272A;
+  --sl-color-hairline-light: #1E1E22;
+  --sl-color-text: #F5F5F5;
+  --sl-color-text-accent: #9F8CFF;
+  --sl-color-white: #F5F5F5;
+  --sl-color-gray-1: #E4E4E7;
+  --sl-color-gray-2: #A1A1AA;
+  --sl-color-gray-3: #71717A;
+  --sl-color-gray-4: #3F3F46;
+  --sl-color-gray-5: #27272A;
+  --sl-color-gray-6: #18181B;
+  --sl-color-gray-7: #0A0A0A;
+  --sl-color-black: #0A0A0A;
+  --sl-color-accent-low: #1a1530;
+  --sl-color-accent: #7B61FF;
+  --sl-color-accent-high: #C4B8FF;
+  --sl-color-text-invert: #0A0A0A;
+}
+
+[data-theme='dark'] {
+  --sl-color-bg: #0A0A0A;
+  --sl-color-bg-nav: #0A0A0A;
+  --sl-color-bg-sidebar: #0F0F11;
+  --sl-color-bg-inline-code: #18181B;
+  --sl-color-hairline: #27272A;
+  --sl-color-hairline-light: #1E1E22;
+  --sl-color-text: #F5F5F5;
+  --sl-color-text-accent: #9F8CFF;
+  --sl-color-accent-low: #1a1530;
+  --sl-color-accent: #7B61FF;
+  --sl-color-accent-high: #C4B8FF;
+}
+
+/* Gradient headings */
+.sl-markdown-content h1 {
+  background: var(--fellow-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Hero tagline gradient */
+.hero .tagline {
+  background: var(--fellow-gradient);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Primary action buttons */
+.hero .action.primary a,
+a[data-type='primary'] {
+  background: var(--fellow-gradient) !important;
+  border: none !important;
+  color: #F5F5F5 !important;
+  transition: opacity 0.2s ease;
+}
+
+.hero .action.primary a:hover,
+a[data-type='primary']:hover {
+  opacity: 0.85;
+}
+
+/* Sidebar active state */
+[aria-current='page'],
+[aria-current='page']:hover {
+  background: var(--fellow-gradient) !important;
+  color: #F5F5F5 !important;
+  -webkit-text-fill-color: #F5F5F5 !important;
+  border-radius: 4px;
+}
+
+/* Card styling */
+.card {
+  background: #18181B !important;
+  border: 1px solid #27272A !important;
+  border-radius: 8px;
+}
+
+.card:hover {
+  border-color: #7B61FF !important;
+}
+
+/* Sidebar group labels */
+.top-level > details > summary,
+.top-level > .group-label {
+  color: #9F8CFF;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.05em;
+}
+
+/* Code blocks */
+.expressive-code {
+  border: 1px solid #27272A;
+  border-radius: 8px;
+}
+
+/* Starlight aside/callout */
+.starlight-aside {
+  border-color: #7B61FF;
+  background: #18181B;
+}
+
+/* Table styling */
+table {
+  border-color: #27272A;
+}
+
+th {
+  background: #18181B;
+  color: #9F8CFF;
+}
+
+td {
+  border-color: #27272A;
+}
+
+/* Logo sizing */
+.site-title img {
+  max-height: 2rem;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0A0A;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3F3F46;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #7B61FF;
+}

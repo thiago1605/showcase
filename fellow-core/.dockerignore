@@ -1,0 +1,10 @@
+.git
+.github
+docs
+tests
+node_modules
+bin
+obj
+*.md
+.env*
+.claude

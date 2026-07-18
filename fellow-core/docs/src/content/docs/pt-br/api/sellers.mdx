@@ -1,0 +1,308 @@
+---
+title: Sellers (Sub-contas)
+description: API para cadastro e consulta de sellers (vendedores/sub-contas) via Fellow Core.
+---
+
+## Criar seller
+
+```http
+POST /api/v1/sellers
+```
+
+### Request body
+
+| Campo               | Tipo   | Obrigatório | Descrição                                |
+|---------------------|--------|-------------|------------------------------------------|
+| `name`              | string | Sim         | Nome do vendedor                         |
+| `document`          | string | Sim         | CPF ou CNPJ (apenas dígitos)             |
+| `email`             | string | Sim         | Email do vendedor                        |
+| `phone`             | string | Não         | Telefone                                 |
+| `preferredProvider` | string | Não         | Provedor preferido                       |
+| `address`           | object | Não         | Endereço para KYC                        |
+
+### Objeto `address`
+
+| Campo          | Tipo   | Descrição          |
+|----------------|--------|--------------------|
+| `street`       | string | Logradouro         |
+| `number`       | string | Número             |
+| `complement`   | string | Complemento        |
+| `neighborhood` | string | Bairro             |
+| `city`         | string | Cidade             |
+| `state`        | string | UF (2 letras)      |
+| `zipCode`      | string | CEP                |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/sellers \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "name": "Loja do João",
+    "document": "12345678901",
+    "email": "joao@loja.com",
+    "phone": "11999998888",
+    "address": {
+      "street": "Rua A",
+      "number": "100",
+      "neighborhood": "Centro",
+      "city": "São Paulo",
+      "state": "SP",
+      "zipCode": "01001000"
+    }
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "uuid",
+  "name": "Loja do João",
+  "document": "12345678901",
+  "email": "joao@loja.com",
+  "providerAccountId": "fellow-account-id"
+}
+```
+
+O campo `providerAccountId` é preenchido após o cadastro e aprovação do KYC. O status do KYC é notificado via [webhook](/pt-br/webhooks/events).
+
+---
+
+## Buscar seller por ID
+
+```http
+GET /api/v1/sellers/{id}
+```
+
+### Response `200 OK`
+
+```json
+{
+  "id": "uuid",
+  "tenantId": "uuid",
+  "name": "Loja do João",
+  "document": "12345678901",
+  "email": "joao@loja.com",
+  "phone": "11999998888",
+  "preferredProvider": null,
+  "providerAccountId": "fellow-account-id",
+  "fees": {
+    "feeDebit": 1.50,
+    "feeCreditCash": 3.20,
+    "feeCreditInstallment": 4.50,
+    "feePixIn": 0.80
+  },
+  "createdAt": "2026-04-27T10:00:00Z"
+}
+```
+
+### Taxas do seller
+
+Cada seller pode ter taxas individuais via `FeeSchedule`. Se não configuradas, as taxas padrão do tenant são usadas.
+
+### Plano de Pricing
+
+Sellers podem ser associados a um plano de pricing (`COMECE`, `CRESCA`, `SCALA`). Quando um plano está ativo, as taxas do plano substituem o `FeeSchedule` individual.
+
+| Plano | PIX | Cartão à vista | Cartão parcelado | Boleto | Saque |
+|---|---|---|---|---|---|
+| **COMECE** | 1,19% min R$0,59 | 4,89% + R$0,49 | 5,89% + R$0,49 | R$3,99 | R$1,49 |
+| **CRESCA** | 0,99% min R$0,59 max R$7,90 | 4,59% + R$0,39 | 5,49% + R$0,39 | R$3,79 | R$1,19 |
+| **SCALA** | 0,89% min R$0,55 max R$5,90 | 4,49% + R$0,29 | 5,19% + R$0,29 | R$3,49 | 50 inclusos, depois R$0,99 |
+
+### Margem na transação
+
+Cada transação persiste a decomposição de margem:
+
+| Campo | Descrição |
+|---|---|
+| `platformFeeAmount` | Taxa cobrada do seller (FellowCore) |
+| `providerCostAmount` | Custo real do provider (Stripe/OpenPix) |
+| `platformMarginAmount` | Margem: platformFee - providerCost |
+
+---
+
+## Sub-contas (SubAccounts)
+
+Endpoints para gerenciamento de sub-contas Pix vinculadas ao tenant.
+
+### Criar sub-conta
+
+```http
+POST /api/v1/sellers/subaccounts
+```
+
+| Campo    | Tipo   | Obrigatório | Descrição                    |
+|----------|--------|-------------|------------------------------|
+| `pixKey` | string | Sim         | Chave Pix da sub-conta       |
+| `name`   | string | Sim         | Nome identificador           |
+
+#### Response `200 OK`
+
+```json
+{
+  "name": "Loja Filial Centro",
+  "pixKey": "filial@empresa.com"
+}
+```
+
+---
+
+### Listar sub-contas
+
+```http
+GET /api/v1/sellers/subaccounts
+```
+
+#### Response `200 OK`
+
+```json
+[
+  { "name": "Sub 1", "pixKey": "sub1@test.com", "balance": 500.00 },
+  { "name": "Sub 2", "pixKey": "sub2@test.com", "balance": 750.00 }
+]
+```
+
+---
+
+### Consultar sub-conta
+
+```http
+GET /api/v1/sellers/subaccounts/{pixKeyOrId}
+```
+
+#### Response `200 OK`
+
+```json
+{
+  "name": "Loja Filial Centro",
+  "pixKey": "filial@empresa.com",
+  "balance": 1000.00
+}
+```
+
+---
+
+### Excluir sub-conta
+
+```http
+DELETE /api/v1/sellers/subaccounts/{pixKeyOrId}
+```
+
+#### Response `204 No Content`
+
+---
+
+### Creditar sub-conta
+
+Adiciona saldo a uma sub-conta.
+
+```http
+POST /api/v1/sellers/subaccounts/{pixKeyOrId}/credit
+```
+
+| Campo         | Tipo    | Obrigatório | Descrição                |
+|---------------|---------|-------------|--------------------------|
+| `amount`      | decimal | Sim         | Valor em reais (> 0)     |
+| `description` | string  | Não         | Descrição da operação    |
+
+#### Response `200 OK`
+
+```json
+{
+  "pixKey": "filial@empresa.com",
+  "amount": 100.00,
+  "description": "Aporte mensal",
+  "message": "Sub-account successfully credited, 10000"
+}
+```
+
+---
+
+### Debitar sub-conta
+
+Remove saldo de uma sub-conta.
+
+```http
+POST /api/v1/sellers/subaccounts/{pixKeyOrId}/debit
+```
+
+| Campo         | Tipo    | Obrigatório | Descrição                |
+|---------------|---------|-------------|--------------------------|
+| `amount`      | decimal | Sim         | Valor em reais (> 0)     |
+| `description` | string  | Não         | Descrição da operação    |
+
+#### Response `200 OK`
+
+Mesmo formato do crédito.
+
+---
+
+### Transferir entre sub-contas
+
+```http
+POST /api/v1/sellers/subaccounts/transfer
+```
+
+| Campo        | Tipo    | Obrigatório | Descrição                |
+|--------------|---------|-------------|--------------------------|
+| `amount`     | decimal | Sim         | Valor em reais (> 0)     |
+| `fromPixKey` | string  | Sim         | Chave Pix de origem      |
+| `toPixKey`   | string  | Sim         | Chave Pix de destino     |
+
+#### Response `200 OK`
+
+```json
+{
+  "amount": 25.00,
+  "origin": { "name": "Origin", "pixKey": "sender@test.com", "balance": 500.00 },
+  "destination": { "name": "Dest", "pixKey": "receiver@test.com", "balance": 1000.00 }
+}
+```
+
+---
+
+### Saque de sub-conta
+
+```http
+POST /api/v1/sellers/subaccounts/{pixKeyOrId}/withdraw
+```
+
+| Campo    | Tipo    | Obrigatório | Descrição            |
+|----------|---------|-------------|----------------------|
+| `amount` | decimal | Sim         | Valor em reais (> 0) |
+
+#### Response `200 OK`
+
+```json
+{
+  "status": "CREATED",
+  "amount": 75.00
+}
+```
+
+---
+
+### Extrato de sub-conta
+
+```http
+GET /api/v1/sellers/subaccounts/{pixKeyOrId}/statement
+```
+
+#### Response `200 OK`
+
+```json
+[
+  {
+    "id": "stmt-1",
+    "time": "2026-04-29T12:00:00Z",
+    "description": "Credit",
+    "balance": 1000.00,
+    "amount": 50.00,
+    "type": "CREDIT",
+    "operationType": "TRANSFER"
+  }
+]
+```

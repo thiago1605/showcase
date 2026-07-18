@@ -1,0 +1,9 @@
+{
+  "scenario": "Webhook Duplication Storm",
+  "verdict": "PASS — No duplicate credits",
+  "webhooks_sent": 0,
+  "webhooks_accepted": 0,
+  "webhooks_rejected_auth": 0,
+  "duplicate_credits_detected": 0,
+  "p95_latency_ms": null
+}

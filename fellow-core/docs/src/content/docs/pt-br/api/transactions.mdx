@@ -1,0 +1,321 @@
+---
+title: Transações
+description: Referência completa da API de transações da Fellow Core.
+---
+
+## Criar transação
+
+```http
+POST /api/v1/transactions
+```
+
+### Request body
+
+| Campo            | Tipo     | Obrigatório | Descrição                                      |
+|------------------|----------|-------------|-------------------------------------------------|
+| `amount`         | decimal  | Sim         | Valor em reais (ex: `150.00`)                  |
+| `paymentType`    | string   | Sim         | `PIX`, `CREDIT_CARD` ou `DEBIT`               |
+| `installments`   | int      | Não         | Parcelas (apenas cartão, default: 1)           |
+| `sellerId`       | uuid     | Não         | ID do seller (sub-conta) para split            |
+| `description`    | string   | Não         | Descrição da cobrança                          |
+| `idempotencyKey` | string   | Sim         | Chave única para evitar duplicidade            |
+| `externalReferenceId` | string | Não    | Referência externa para deduplicação           |
+| `splits`         | array    | Não         | Lista de splits manuais (ver abaixo)           |
+| `splitRuleId`    | uuid     | Não         | ID de uma regra de split reutilizável          |
+| `feeAllocationPolicy` | string | Não    | Quem paga as taxas: `PRIMARY_SELLER_PAYS_FEES` (default), `PROPORTIONAL_TO_RECIPIENTS`, `PLATFORM_ABSORBS` |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/transactions \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "amount": 250.00,
+    "paymentType": "PIX",
+    "sellerId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "description": "Pedido #42",
+    "idempotencyKey": "order-42"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "uuid",
+  "status": "PENDING",
+  "amount": 250.00,
+  "gateway": {
+    "transactionId": "fellow-tx-id",
+    "qrCodeBase64": "data:image/png;base64,...",
+    "qrCodeText": "00020126...",
+    "paymentUrl": "https://pay.fellowpay.com.br/..."
+  }
+}
+```
+
+### Objeto `splits[]`
+
+| Campo        | Tipo    | Obrigatório | Descrição                          |
+|-------------|---------|-------------|------------------------------------|
+| `sellerId`  | uuid    | Sim         | ID do seller recebedor             |
+| `amount`    | decimal | Não*        | Valor fixo em reais                |
+| `percentage`| decimal | Não*        | Porcentagem do valor líquido       |
+
+\* Informe `amount` ou `percentage`, não ambos. Não é possível enviar `splits` e `splitRuleId` simultaneamente.
+
+### Limites de split por plano
+
+| Plano   | Máximo de recebedores |
+|---------|----------------------:|
+| COMECE  | 2                     |
+| CRESCA  | 10                    |
+| SCALA   | 50                    |
+
+### Margem na transação (detalhe)
+
+O endpoint `GET /api/v1/transactions/{id}` retorna os campos de margem:
+
+| Campo                  | Descrição                                    |
+|------------------------|----------------------------------------------|
+| `platformFeeAmount`    | Taxa cobrada do seller (FellowCore)          |
+| `providerCostAmount`   | Custo real do provider (Stripe/OpenPix)     |
+| `platformMarginAmount` | Margem: platformFee - providerCost          |
+
+---
+
+## Listar transações
+
+```http
+GET /api/v1/transactions
+```
+
+### Query parameters
+
+| Parâmetro     | Tipo     | Default | Descrição                              |
+|---------------|----------|---------|----------------------------------------|
+| `page`        | int      | 1       | Página atual                           |
+| `pageSize`    | int      | 20      | Itens por página (max: 100)            |
+| `status`      | string   | —       | Filtrar por status                     |
+| `paymentType` | string   | —       | Filtrar por tipo de pagamento          |
+| `provider`    | string   | —       | Filtrar por provedor                   |
+| `sellerId`    | uuid     | —       | Filtrar por seller                     |
+| `from`        | datetime | —       | Data inicial (ISO 8601)                |
+| `to`          | datetime | —       | Data final (ISO 8601)                  |
+
+### Response `200 OK`
+
+```json
+{
+  "items": [
+    {
+      "id": "uuid",
+      "tenantId": "uuid",
+      "sellerId": "uuid",
+      "amount": 250.00,
+      "feeAmount": 5.00,
+      "netAmount": 245.00,
+      "refundedAmount": 0.00,
+      "currency": "BRL",
+      "status": "CAPTURED",
+      "paymentType": "PIX",
+      "provider": "FELLOW_PAY",
+      "providerTxId": "abc123",
+      "installments": 1,
+      "description": "Pedido #42",
+      "expectedSettlementDate": "2026-04-28T00:00:00Z",
+      "settlementStatus": "PENDING",
+      "createdAt": "2026-04-27T10:00:00Z",
+      "updatedAt": "2026-04-27T10:05:00Z",
+      "timeline": [
+        { "status": "PENDING", "createdAt": "2026-04-27T10:00:00Z" },
+        { "status": "CAPTURED", "createdAt": "2026-04-27T10:05:00Z" }
+      ]
+    }
+  ],
+  "totalCount": 42,
+  "page": 1,
+  "pageSize": 20,
+  "totalPages": 3,
+  "hasNext": true,
+  "hasPrevious": false
+}
+```
+
+---
+
+## Buscar transação por ID
+
+```http
+GET /api/v1/transactions/{id}
+```
+
+Retorna o mesmo formato de um item da listagem, incluindo `timeline`.
+
+---
+
+## Reembolsar transação
+
+```http
+POST /api/v1/transactions/{id}/refund
+```
+
+### Request body
+
+| Campo    | Tipo    | Obrigatório | Descrição                                       |
+|----------|---------|-------------|-------------------------------------------------|
+| `amount` | decimal | Não         | Valor do reembolso. Se omitido, reembolso total. |
+| `reason` | string  | Não         | Motivo do reembolso.                            |
+
+:::tip[Reembolso parcial]
+Você pode fazer múltiplos reembolsos parciais até o valor total da transação. A cada chamada, `refundedAmount` é acumulado. Quando `refundedAmount >= amount`, o status muda para `REFUNDED`.
+:::
+
+### Exemplo — reembolso parcial
+
+```bash
+curl -X POST /api/v1/transactions/{id}/refund \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "amount": 50.00,
+    "reason": "Produto avariado"
+  }'
+```
+
+### Response `200 OK`
+
+```json
+{
+  "id": "uuid",
+  "status": "CAPTURED",
+  "refundId": "refund-correlation-id"
+}
+```
+
+### Regras de negócio
+
+- Apenas transações com status `CAPTURED` podem ser reembolsadas.
+- O valor do reembolso deve ser maior que zero.
+- A soma dos reembolsos não pode exceder o valor original da transação.
+- Em caso de concorrência, a API retorna `409 Conflict` — basta tentar novamente.
+
+### Status da transação
+
+| Status       | Descrição                                      |
+|--------------|-------------------------------------------------|
+| `PENDING`    | Criada, aguardando pagamento                   |
+| `CAPTURED`   | Pagamento confirmado                           |
+| `EXPIRED`    | Expirou sem pagamento                          |
+| `REFUNDED`   | Totalmente reembolsada                         |
+| `FAILED`     | Falha no processamento                         |
+
+---
+
+## Cancelar transação
+
+```http
+POST /api/v1/transactions/{id}/cancel
+```
+
+Cancela uma transação pendente. Se a transação for do tipo Pix, a cobrança é cancelada junto ao provedor.
+
+### Response `204 No Content`
+
+### Regras de negócio
+
+- Apenas transações com status `CREATED` podem ser canceladas.
+
+---
+
+## Atualizar expiração
+
+Atualiza a data de expiração de uma cobrança Pix pendente.
+
+```http
+PATCH /api/v1/transactions/{id}
+```
+
+### Request body
+
+| Campo       | Tipo     | Obrigatório | Descrição                        |
+|-------------|----------|-------------|----------------------------------|
+| `expiresAt` | datetime | Sim         | Nova data de expiração (ISO 8601) |
+
+### Exemplo
+
+```bash
+curl -X PATCH /api/v1/transactions/{id} \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{ "expiresAt": "2026-05-01T23:59:59Z" }'
+```
+
+### Response `200 OK`
+
+Retorna o mesmo formato de `TransactionDetailDto`.
+
+### Regras de negócio
+
+- Apenas transações Pix com status `CREATED` podem ter a expiração atualizada.
+
+---
+
+## Listar reembolsos
+
+```http
+GET /api/v1/transactions/{id}/refunds
+```
+
+Retorna os reembolsos realizados para uma transação Pix.
+
+### Response `200 OK`
+
+```json
+[
+  {
+    "correlationId": "refund-corr-...",
+    "status": "CONFIRMED",
+    "amount": 50.00,
+    "endToEndId": "e2e-...",
+    "returnIdentification": "ret-...",
+    "time": "2026-04-29T12:00:00Z",
+    "comment": "Produto avariado"
+  }
+]
+```
+
+---
+
+## Consultar reembolso
+
+```http
+GET /api/v1/transactions/{id}/refunds/{refundId}
+```
+
+### Response `200 OK`
+
+Retorna um único objeto `RefundDetailDto` com o mesmo formato da listagem.
+
+---
+
+## Comprovante de transação
+
+```http
+GET /api/v1/transactions/{id}/receipt?type=payment
+```
+
+### Query parameters
+
+| Parâmetro | Tipo   | Obrigatório | Descrição                    |
+|-----------|--------|-------------|------------------------------|
+| `type`    | string | Sim         | Tipo do comprovante (ex: `payment`) |
+
+### Response `200 OK`
+
+Retorna o arquivo PDF do comprovante (`application/pdf`).
+
+### Regras de negócio
+
+- Apenas transações Pix com status `CAPTURED` possuem comprovante.

@@ -1,0 +1,7 @@
+.DS_Store
+cleanup.sh
+node_modules/
+bin/
+obj/
+*.env*
+appsettings*.json

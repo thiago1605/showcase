@@ -1,0 +1,138 @@
+---
+title: Clientes
+description: Referência completa da API de clientes da Fellow Core.
+---
+
+Clientes representam os pagadores nas transações. É possível armazenar dados e adicionar métodos de pagamento (cartões tokenizados) vinculados a um cliente.
+
+---
+
+## Criar cliente
+
+```http
+POST /api/v1/customers
+```
+
+### Request body
+
+| Campo         | Tipo   | Obrigatório | Descrição                         |
+|---------------|--------|-------------|-----------------------------------|
+| `name`        | string | Sim         | Nome completo do cliente          |
+| `email`       | string | Sim         | E-mail (único por tenant)         |
+| `document`    | string | Sim         | CPF (11 dígitos) ou CNPJ (14)     |
+| `phone`       | string | Não         | Telefone no formato `11999999999` |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/customers \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "name": "Maria Silva",
+    "email": "maria@example.com",
+    "document": "12345678901",
+    "phone": "11999999999"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "9f8e7d6c-...",
+  "name": "Maria Silva",
+  "email": "maria@example.com",
+  "document": "12345678901",
+  "phone": "11999999999",
+  "createdAt": "2024-01-15T10:30:00Z"
+}
+```
+
+---
+
+## Listar clientes
+
+```http
+GET /api/v1/customers?page=1&pageSize=20
+```
+
+### Query params
+
+| Parâmetro  | Tipo | Default | Descrição         |
+|------------|------|---------|-------------------|
+| `page`     | int  | 1       | Página atual      |
+| `pageSize` | int  | 20      | Itens por página  |
+
+### Response `200 OK`
+
+```json
+{
+  "items": [ { "id": "...", "name": "..." } ],
+  "totalCount": 42,
+  "page": 1,
+  "pageSize": 20
+}
+```
+
+---
+
+## Obter cliente
+
+```http
+GET /api/v1/customers/{id}
+```
+
+Retorna `404 Not Found` se o cliente não pertencer ao tenant autenticado.
+
+---
+
+## Atualizar cliente
+
+```http
+PATCH /api/v1/customers/{id}
+```
+
+### Request body (todos os campos são opcionais)
+
+| Campo    | Tipo   | Descrição            |
+|----------|--------|----------------------|
+| `name`   | string | Novo nome            |
+| `email`  | string | Novo e-mail (único)  |
+| `phone`  | string | Novo telefone        |
+
+---
+
+## Adicionar método de pagamento
+
+Salva um cartão tokenizado vinculado ao cliente para cobranças recorrentes via cartão.
+
+```http
+POST /api/v1/customers/{id}/payment-methods
+```
+
+### Request body
+
+| Campo             | Tipo   | Obrigatório | Descrição                                  |
+|-------------------|--------|-------------|--------------------------------------------|
+| `holderName`      | string | Sim         | Nome impresso no cartão                    |
+| `number`          | string | Sim         | Número do cartão (16 dígitos, sem espaços) |
+| `expiryMonth`     | int    | Sim         | Mês de validade (1–12)                     |
+| `expiryYear`      | int    | Sim         | Ano de validade (4 dígitos)                |
+| `cvv`             | string | Sim         | Código de segurança                        |
+
+### Response `201 Created`
+
+```json
+{
+  "id": "pm_...",
+  "last4": "1234",
+  "brand": "VISA",
+  "expiryMonth": 12,
+  "expiryYear": 2027
+}
+```
+
+:::caution
+O número completo do cartão nunca é armazenado pela Fellow Core — apenas o token seguro retornado pelo provedor de pagamentos.
+:::

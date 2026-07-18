@@ -1,0 +1,775 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:is(.dark *));
+
+@keyframes slide-in-from-right {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Modal backdrop fade-in — leve, rápido. Usado em todos os modais bespoke
+   do app para entrada consistente. */
+@keyframes modal-backdrop-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Modal content scale + fade — sensação de "pop" suave. Duração curta para
+   não atrasar a interação. */
+@keyframes modal-content-in {
+  from { opacity: 0; transform: scale(0.96) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* Dropdown / popover entry — scale a partir do ponto de origem (topo do
+   popup, próximo ao botão que abriu). Scale inicial mais perto de 1 (0.97
+   em vez de 0.94) + translateY pequeno pra sentir a descida sem ser brusco.
+   Combinado com easing suave de saída (ease-out longo) dá sensação fluida. */
+@keyframes dropdown-in {
+  from {
+    opacity: 0;
+    transform: scale(0.97) translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-in {
+  animation: fade-in 0.2s ease-out;
+}
+
+.slide-in-from-right {
+  animation: slide-in-from-right 0.3s ease-out;
+}
+
+.modal-backdrop-in {
+  animation: modal-backdrop-in 0.18s ease-out;
+}
+
+.modal-content-in {
+  animation: modal-content-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  transform-origin: center;
+}
+
+.dropdown-in {
+  /* Duração subiu pra 0.28s (era 0.15s) — abertura sente mais "fluida",
+     não tão snap. Curva cubic-bezier(0.22, 1, 0.36, 1) = ease-out suave
+     padrão Apple/iOS, desacelera gradualmente sem overshoot. */
+  animation: dropdown-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+  /* Origin no topo-direito — onde a maioria dos dropdowns abrem (debaixo
+     de um trigger button). Visual sensation: o popup brota do botão. */
+  transform-origin: top right;
+}
+
+/* Glass popover — mesmo efeito frosted dos tooltips dos charts. Aplicado a
+   popovers/dropdowns custom (ExportButton, Select, MultiSelect, PeriodPicker).
+   Use junto com `dropdown-in` pra animação + glass. Substitui combos como
+   `bg-white border-gray-200 dark:bg-gray-800 dark:border-gray-700`. */
+.glass-popover {
+  /* Opacidade mais alta que tooltip (90% vs 75%) porque popovers ficam
+     sobre cards/conteúdo da page (texto, gráficos) — precisa base sólida
+     pra itens do menu não vazarem ilegíveis. Mantém vidro pelo blur forte
+     e shine inset. */
+  background-color: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.65);
+}
+.dark .glass-popover {
+  /* Mirror exato do tooltip dark dos charts: rgba(31, 41, 55, 0.65) +
+     backdrop-blur(16px) saturate(150%). O viés azul aqui é proposital —
+     casa com o tooltip do user. */
+  background-color: rgba(31, 41, 55, 0.65);
+  border-color: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+
+@theme {
+  --font-*: initial;
+  --font-inter: Inter, system-ui, sans-serif;
+  /* Outfit — fonte de marca da Fellow Pay. Usada em headlines (auth) e charts. */
+  --font-display: var(--font-outfit), "Outfit", system-ui, sans-serif;
+
+  --breakpoint-*: initial;
+  --breakpoint-2xsm: 375px;
+  --breakpoint-xsm: 425px;
+  --breakpoint-3xl: 2000px;
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  --text-title-2xl: 72px;
+  --text-title-2xl--line-height: 90px;
+  --text-title-xl: 60px;
+  --text-title-xl--line-height: 72px;
+  --text-title-lg: 48px;
+  --text-title-lg--line-height: 60px;
+  --text-title-md: 36px;
+  --text-title-md--line-height: 44px;
+  --text-title-sm: 30px;
+  --text-title-sm--line-height: 38px;
+  --text-theme-xl: 20px;
+  --text-theme-xl--line-height: 30px;
+  --text-theme-sm: 14px;
+  --text-theme-sm--line-height: 20px;
+  --text-theme-xs: 12px;
+  --text-theme-xs--line-height: 18px;
+
+  /* Fellow Pay - Core palette */
+  --color-current: currentColor;
+  --color-transparent: transparent;
+  --color-white: #ffffff;
+  --color-black: #0A0A0A;
+
+  /* Brand violet (Fellow Pay — calibrado pela logo do grupo).
+   *
+   * O manual escrito dá hex em hue 250° (#7B61FF / #6D4CFF / #9F8CFF), que
+   * tecnicamente são blue-violet/indigo. A logo do grupo, porém, mostra um
+   * roxo verdadeiro em hue ~273° — purple/violet com leitura clara de "roxo".
+   * A ramp abaixo está calibrada pela LOGO (fonte visual de verdade), com
+   * hue consistente 273°:
+   *
+   *   - brand-300 = highlight da logo (top-right do glyph)  ≈ #B07AE0
+   *   - brand-500 = mid-tone da logo (texto "Pay")          ≈ #8B47D9
+   *   - brand-700 = shadow da logo (bottom-left do glyph)   ≈ #5A20A0 */
+  --color-brand-25: #faf5ff;
+  --color-brand-50: #f3e8ff;
+  --color-brand-100: #e4cffa;
+  --color-brand-200: #c8a1f0;
+  --color-brand-300: #b07ae0;
+  --color-brand-400: #9952d9;
+  --color-brand-500: #8b47d9;
+  --color-brand-600: #7029bd;
+  --color-brand-700: #5a20a0;
+  --color-brand-800: #481583;
+  --color-brand-900: #350d66;
+  --color-brand-950: #210849;
+  --color-brand-glow: 139 71 217;
+
+  /* Gray scale (Fellow operational grays) — alinhada ao manual da marca.
+   *
+   * Anchors do spec (cores secundárias da marca):
+   *   - gray-400 = Slate Gray    #A1A1AA
+   *   - gray-800 = Cool Gray     #27272A
+   *   - gray-900 = Deep Graphite #18181B
+   *
+   * gray-950 (#0E0E11) é uma extensão custom abaixo do Deep Graphite para
+   * permitir hierarquia body-bg → card-bg em dark mode (body um pouco mais
+   * escuro que cards/sidebar). Demais tons interpolados em zinc-compatible. */
+  --color-gray-25: #fafafa;
+  --color-gray-50: #f7f7f8;
+  --color-gray-100: #efefef;
+  --color-gray-200: #e4e4e7;
+  --color-gray-300: #d1d1d6;
+  --color-gray-400: #A1A1AA;
+  --color-gray-500: #71717a;
+  --color-gray-600: #52525b;
+  --color-gray-700: #3f3f46;
+  --color-gray-800: #27272A;
+  --color-gray-900: #18181B;
+  --color-gray-950: #0E0E11;
+  --color-gray-dark: #111114;
+
+  /* Success */
+  --color-success-25: #f0fdf4;
+  --color-success-50: #ecfdf5;
+  --color-success-100: #d1fae5;
+  --color-success-200: #a7f3d0;
+  --color-success-300: #6ee7b7;
+  --color-success-400: #34d399;
+  --color-success-500: #22C55E;
+  --color-success-600: #16a34a;
+  --color-success-700: #15803d;
+  --color-success-800: #166534;
+  --color-success-900: #14532d;
+  --color-success-950: #052e16;
+
+  /* Error */
+  --color-error-25: #fef2f2;
+  --color-error-50: #fef2f2;
+  --color-error-100: #fee2e2;
+  --color-error-200: #fecaca;
+  --color-error-300: #fca5a5;
+  --color-error-400: #f87171;
+  --color-error-500: #EF4444;
+  --color-error-600: #dc2626;
+  --color-error-700: #b91c1c;
+  --color-error-800: #991b1b;
+  --color-error-900: #7f1d1d;
+  --color-error-950: #450a0a;
+
+  /* Warning */
+  --color-warning-25: #fffbeb;
+  --color-warning-50: #fffbeb;
+  --color-warning-100: #fef3c7;
+  --color-warning-200: #fde68a;
+  --color-warning-300: #fcd34d;
+  --color-warning-400: #fbbf24;
+  --color-warning-500: #F59E0B;
+  --color-warning-600: #d97706;
+  --color-warning-700: #b45309;
+  --color-warning-800: #92400e;
+  --color-warning-900: #78350f;
+  --color-warning-950: #451a03;
+
+  /* Info blue */
+  --color-blue-light-25: #eff6ff;
+  --color-blue-light-50: #eff6ff;
+  --color-blue-light-100: #dbeafe;
+  --color-blue-light-200: #bfdbfe;
+  --color-blue-light-300: #93c5fd;
+  --color-blue-light-400: #60a5fa;
+  --color-blue-light-500: #3B82F6;
+  --color-blue-light-600: #2563eb;
+  --color-blue-light-700: #1d4ed8;
+  --color-blue-light-800: #1e40af;
+  --color-blue-light-900: #1e3a8a;
+  --color-blue-light-950: #172554;
+
+  /* Orange accent */
+  --color-orange-25: #fff7ed;
+  --color-orange-50: #fff7ed;
+  --color-orange-100: #ffedd5;
+  --color-orange-200: #fed7aa;
+  --color-orange-300: #fdba74;
+  --color-orange-400: #fb923c;
+  --color-orange-500: #f97316;
+  --color-orange-600: #ea580c;
+  --color-orange-700: #c2410c;
+  --color-orange-800: #9a3412;
+  --color-orange-900: #7c2d12;
+  --color-orange-950: #431407;
+
+  --color-theme-pink-500: #ec4899;
+  --color-theme-purple-500: #b026ff;
+
+  /* Shadows */
+  --shadow-theme-md:
+    0px 4px 8px -2px rgba(0, 0, 0, 0.1),
+    0px 2px 4px -2px rgba(0, 0, 0, 0.06);
+  --shadow-theme-lg:
+    0px 12px 16px -4px rgba(0, 0, 0, 0.08),
+    0px 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-theme-sm:
+    0px 1px 3px 0px rgba(0, 0, 0, 0.1),
+    0px 1px 2px 0px rgba(0, 0, 0, 0.06);
+  --shadow-theme-xs: 0px 1px 2px 0px rgba(0, 0, 0, 0.05);
+  --shadow-theme-xl:
+    0px 20px 24px -4px rgba(0, 0, 0, 0.08),
+    0px 8px 8px -4px rgba(0, 0, 0, 0.03);
+  --shadow-datepicker: -5px 0 0 var(--color-gray-800), 5px 0 0 var(--color-gray-800);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(176, 38, 255, 0.18);
+  --shadow-slider-navigation:
+    0px 1px 2px 0px rgba(0, 0, 0, 0.1), 0px 1px 3px 0px rgba(0, 0, 0, 0.1);
+  --shadow-tooltip:
+    0px 4px 6px -2px rgba(0, 0, 0, 0.05),
+    -8px 0px 20px 8px rgba(0, 0, 0, 0.05);
+
+  --drop-shadow-4xl:
+    0 35px 35px rgba(0, 0, 0, 0.25), 0 45px 65px rgba(0, 0, 0, 0.15);
+
+  --z-index-1: 1;
+  --z-index-9: 9;
+  --z-index-99: 99;
+  --z-index-999: 999;
+  --z-index-9999: 9999;
+  --z-index-99999: 99999;
+  --z-index-999999: 999999;
+}
+
+@layer base {
+  /* Root font-size em 100% (default do browser).
+   *
+   * A compactação visual fica aplicada no shell de conteúdo, não no root,
+   * para preservar sidebar e componentes fixos na proporção base.
+   *
+   * Se alguma tela específica ficar apertada, ajuste o layout local antes de
+   * mexer novamente na escala global.
+   */
+
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentColor);
+  }
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+  }
+
+  :root {
+    /* Cores institucionais — manual da marca Fellow.
+     * Royal Violet / Electric Indigo / Soft Lavender formam o gradiente
+     * institucional (135deg, #7B61FF 0% → #6D4CFF 50% → #9F8CFF 100%). */
+    --fellow-black: #0A0A0A;
+    --fellow-black-deep: #000000;
+    --fellow-surface: #18181B;   /* Deep Graphite */
+    --fellow-border: #27272A;    /* Cool Gray */
+    --fellow-text: #F5F5F5;      /* Soft White */
+    --fellow-text-secondary: #A1A1AA; /* Slate Gray */
+    --fellow-purple: #8B47D9;          /* True violet (logo mid-tone) */
+    --fellow-purple-dark: #5A20A0;     /* Deep violet (logo shadow) */
+    --fellow-purple-light: #B07AE0;    /* Light violet (logo highlight) */
+
+    /* Semantic tokens - Light mode */
+    --fellow-bg: #F5F5F5;             /* Soft White */
+    --fellow-bg-surface: #ffffff;
+    --fellow-bg-surface-muted: #f3f3f5;
+    --fellow-bg-border: #e4e4e7;
+    --fellow-text-primary: #18181B;
+    --fellow-text-secondary-sem: #52525b;
+    --fellow-text-muted: #71717a;
+    --fellow-accent: #8B47D9;         /* True violet (cor primária) */
+    --fellow-accent-hover: #7029BD;   /* Denser violet no hover */
+    --fellow-color-success: #22C55E;
+    --fellow-color-warning: #F59E0B;
+    --fellow-color-danger: #EF4444;
+    --fellow-color-info: #3B82F6;
+
+    /* Chart colors */
+    --fellow-chart-1: #8B47D9;        /* True violet (cor primária) */
+    --fellow-chart-2: #22C55E;
+    --fellow-chart-3: #3B82F6;
+    --fellow-chart-4: #F59E0B;
+    --fellow-chart-5: #EF4444;
+    --fellow-chart-6: #B07AE0;        /* Light violet (alt. brand) */
+  }
+
+  .dark {
+    /* Dark mode — superfícies alinhadas ao spec (Deep Graphite + Cool Gray). */
+    --fellow-bg: #0E0E11;
+    --fellow-bg-surface: #18181B;     /* Deep Graphite */
+    --fellow-bg-surface-muted: #1f1f23;
+    --fellow-bg-border: #27272A;      /* Cool Gray */
+    --fellow-text-primary: #F5F5F5;   /* Soft White */
+    --fellow-text-secondary-sem: #A1A1AA; /* Slate Gray */
+    --fellow-text-muted: #71717a;
+    --fellow-accent: #8B47D9;         /* True violet (mesmo em dark) */
+    --fellow-accent-hover: #B07AE0;   /* Light violet no hover */
+    --fellow-color-success: #34d399;
+    --fellow-color-warning: #fbbf24;
+    --fellow-color-danger: #f87171;
+    --fellow-color-info: #60a5fa;
+
+    --fellow-chart-1: #B07AE0;   /* Light violet — chart primary em dark */
+    --fellow-chart-2: #34d399;
+    --fellow-chart-3: #60a5fa;
+    --fellow-chart-4: #fbbf24;
+    --fellow-chart-5: #f87171;
+    --fellow-chart-6: #8B47D9;   /* True violet (alt. brand) */
+  }
+
+  body {
+    /* Dokue-style: bg off-white levemente cremoso. Mais respirável que
+       gray-50 puro, mas ainda fica em harmonia com cards branco-branco. */
+    @apply relative font-normal font-inter z-1 bg-[#f3f4f6] text-gray-900 dark:bg-gray-950 dark:text-gray-100;
+  }
+}
+
+/* ============================================================================
+   DOKUE-STYLE PILL GRADIENTS
+   ============================================================================
+   Pills (status badges, KPI counters) usadas globalmente. Cada uma é um
+   gradient duotone com sombra colorida correspondente. Use as classes
+   .pill-{tone} no className do elemento. */
+
+@keyframes pill-shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@utility pill-gradient-brand {
+  background: linear-gradient(135deg, #b07ae0 0%, #7029bd 100%);
+  box-shadow: 0 8px 24px -10px rgba(139, 71, 217, 0.5);
+}
+
+/* "Skin global" — todo <button>/<a> com Tailwind `bg-brand-500` herda:
+   - pill gradient brand (#b07ae0 → #7029bd) + rounded-full + glow
+   - hover gorgeous: lift -2px + glow expandido + gradient brilhando + shine
+     inset no topo (luz batendo na curvatura, padrão iOS premium button)
+   - active press: translateY zero + scale 0.98 + sombra interna (sensação
+     tátil de "afundar" no clique)
+   - transition longa (0.3s) com easing suave pra sentir cinematográfico
+   Para opt out, adicione `.no-pill`. */
+button.bg-brand-500:not(.no-pill),
+a.bg-brand-500:not(.no-pill) {
+  background-image: linear-gradient(135deg, #b07ae0 0%, #7029bd 100%);
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 24px -10px rgba(139, 71, 217, 0.5);
+  /* `translate` standalone (não conflita com transform usado por utilities
+     Tailwind tipo `active:scale-*`). JS seta `translate: Xpx Ypx` pro pull
+     magnético; transform fica livre pra hover lift / active press. */
+  translate: 0 0;
+  filter: brightness(1) saturate(1);
+  transition:
+    translate 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+    filter 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+button.bg-brand-500:hover:not(.no-pill):not(:disabled),
+a.bg-brand-500:not([aria-disabled="true"]):hover:not(.no-pill) {
+  /* `filter: brightness + saturate` realça o gradient SEM trocar o
+     background-image — animação 100% smooth (filter sempre interpola).
+     Antes trocávamos o linear-gradient inteiro no hover, o que dependia
+     de suporte spotty a interpolação entre gradients em alguns browsers. */
+  filter: brightness(1.1) saturate(1.15);
+  transform: translateY(-1px);
+  box-shadow:
+    0 10px 20px -8px rgba(139, 71, 217, 0.35),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.18);
+}
+button.bg-brand-500:active:not(.no-pill):not(:disabled),
+a.bg-brand-500:not([aria-disabled="true"]):active:not(.no-pill) {
+  transform: translateY(0) scale(0.97);
+  box-shadow:
+    0 4px 12px -6px rgba(139, 71, 217, 0.5),
+    inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  transition-duration: 0.12s;
+}
+
+/* ----- .btn-magnetic ---------------------------------------------------
+   Opt-in pro efeito magnético + lift + scale press, SEM o pill gradient
+   brand. Usado em botões secundários neutros (ex: "Entrar com Google")
+   que precisam do micro-interação Apple-style mantendo identidade própria
+   (cor do bg, borda). JS do MagneticButtons.tsx anima `translate` via
+   inline style; CSS aqui cobre transition + hover lift + active press. */
+button.btn-magnetic,
+a.btn-magnetic {
+  translate: 0 0;
+  transition:
+    translate 0.5s cubic-bezier(0.23, 1, 0.32, 1),
+    transform 0.3s cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 0.25s ease-out,
+    border-color 0.25s ease-out;
+}
+button.btn-magnetic:hover:not(:disabled),
+a.btn-magnetic:not([aria-disabled="true"]):hover {
+  transform: translateY(-1px);
+  /* Shadow neutra bem mais discreta que a do brand pill (não tem glow purple,
+     só uma sombra cinza sutil pra dar profundidade ao lift). */
+  box-shadow: 0 6px 14px -8px rgba(0, 0, 0, 0.18);
+}
+button.btn-magnetic:active:not(:disabled),
+a.btn-magnetic:not([aria-disabled="true"]):active {
+  transform: translateY(0) scale(0.98);
+  box-shadow: 0 2px 6px -4px rgba(0, 0, 0, 0.15);
+  transition-duration: 0.12s;
+}
+
+@utility pill-gradient-blue {
+  background: linear-gradient(135deg, #93c5fd 0%, #3b82f6 100%);
+  box-shadow: 0 8px 24px -10px rgba(59, 130, 246, 0.5);
+}
+
+@utility pill-gradient-success {
+  background: linear-gradient(135deg, #6ee7b7 0%, #10b981 100%);
+  box-shadow: 0 8px 24px -10px rgba(16, 185, 129, 0.5);
+}
+
+@utility pill-gradient-error {
+  background: linear-gradient(135deg, #fda4af 0%, #ef4444 100%);
+  box-shadow: 0 8px 24px -10px rgba(239, 68, 68, 0.5);
+}
+
+@utility pill-gradient-amber {
+  background: linear-gradient(135deg, #fcd34d 0%, #f59e0b 100%);
+  box-shadow: 0 8px 24px -10px rgba(245, 158, 11, 0.5);
+}
+
+/* ============================================================================
+   MENU UTILITIES — Dokue style
+   ============================================================================
+   Items compactos pra caber a lista inteira sem cortar. Pill rounded-full no
+   active state com gradient brand purple visível + glow. Ícone do active
+   dentro de CÍRCULO gradient roxo (h-8 w-8 rounded-full). Ícones inativos
+   sem box visível — só outline icon. */
+
+@utility menu-item {
+  @apply relative flex items-center w-full gap-3 px-2 py-1 font-medium rounded-full text-sm transition-colors duration-300;
+  min-height: 2.25rem; /* h-9 — apertado, dominado pelo ícone (h-8 + py) */
+}
+
+/* O bg/glow purple do item ativo NÃO mora no .menu-item-active. Em vez disso,
+   um <div> `nav-active-indicator` (renderizado no AppSidebar) é posicionado
+   absoluto sobre o item ativo e ANIMA left/top/width/height via CSS transition
+   quando a navegação muda — gera o efeito "pill desliza pra próxima rota"
+   (mesmo padrão do SegmentedPresets no PeriodSelector). Só a cor do texto/peso
+   da fonte permanece como diff entre active/inactive. */
+@utility menu-item-active {
+  @apply text-brand-700 dark:text-brand-200 font-semibold;
+}
+
+/* Pill flutuante que desliza entre itens ativos. Renderizado pelo AppSidebar
+   dentro do <nav>, com posição/tamanho controlados via inline style (ref
+   measurement). transition cobre left/top/width/height pra animar o movimento. */
+.nav-active-indicator {
+  position: absolute;
+  pointer-events: none;
+  z-index: 0;
+  border-radius: 9999px;
+  background: linear-gradient(135deg, rgba(176, 122, 224, 0.22) 0%, rgba(112, 41, 189, 0.26) 100%);
+  box-shadow:
+    0 14px 36px -12px rgba(139, 71, 217, 0.45),
+    inset 0 0 0 1px rgba(139, 71, 217, 0.3);
+  transition:
+    left 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    top 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    width 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    height 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.2s ease-out;
+}
+
+@utility menu-item-inactive {
+  @apply text-gray-600 hover:bg-gray-100/70 dark:text-gray-400 dark:hover:bg-white/5;
+}
+
+/* Círculo do ícone (h-8 w-8 rounded-full) — sempre presente para manter
+   alinhamento. Active vira gradient brand puro com texto branco + glow.
+   Inactive fica TRANSPARENTE com só o ícone outline visível (sem box). */
+@utility menu-item-icon {
+  @apply inline-flex items-center justify-center h-8 w-8 rounded-full shrink-0 transition-all;
+}
+
+@utility menu-item-icon-active {
+  background: linear-gradient(135deg, #b07ae0 0%, #7029bd 100%);
+  /* Glow ambient só. O "envelope" externo vem do .menu-item-active no
+     parent (bg + inset border + glow). Em modo colapsado o parent fica com
+     w-12 (controlado via JS) e o rounded-full produz um pill horizontal
+     ligeiramente esticado — mesma estética da versão expandida em escala. */
+  box-shadow: 0 6px 16px -6px rgba(139, 71, 217, 0.5);
+  @apply text-white;
+}
+
+/* Variante "colapsada" do glow do indicator — quando a sidebar está collapsed
+   o pill ativo fica pequeno (w-12) e o glow downward longo (alpha 0.45 a 24px
+   abaixo) cria ilusão de espaçamento exagerado. Aplicado via classe extra
+   `nav-active-indicator-collapsed` set pelo AppSidebar quando isCollapsed. */
+.nav-active-indicator.nav-active-indicator-collapsed {
+  box-shadow:
+    0 4px 12px -6px rgba(139, 71, 217, 0.30),
+    inset 0 0 0 1px rgba(139, 71, 217, 0.3);
+}
+
+@utility menu-item-icon-inactive {
+  @apply bg-transparent text-gray-600 group-hover:text-brand-600
+         dark:text-gray-400 dark:group-hover:text-brand-300;
+}
+
+@utility menu-item-arrow {
+  @apply relative;
+}
+
+@utility menu-item-arrow-active {
+  @apply rotate-180 text-brand-600 dark:text-brand-400;
+}
+
+@utility menu-item-arrow-inactive {
+  @apply text-gray-400 group-hover:text-gray-600 dark:text-gray-500 dark:group-hover:text-gray-300;
+}
+
+@utility menu-dropdown-item {
+  @apply relative flex items-center gap-3 rounded-lg px-3 py-2 text-theme-sm font-medium;
+}
+
+@utility menu-dropdown-item-active {
+  @apply bg-brand-50 text-brand-600 dark:bg-brand-500/[0.12] dark:text-brand-400;
+}
+
+@utility menu-dropdown-item-inactive {
+  @apply text-gray-600 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-white/5;
+}
+
+@utility menu-dropdown-badge {
+  @apply block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase text-brand-600 dark:text-brand-400;
+}
+
+@utility menu-dropdown-badge-active {
+  @apply bg-brand-100 dark:bg-brand-500/20;
+}
+
+@utility menu-dropdown-badge-inactive {
+  @apply bg-brand-50 group-hover:bg-brand-100 dark:bg-brand-500/15 dark:group-hover:bg-brand-500/20;
+}
+
+@utility no-scrollbar {
+  &::-webkit-scrollbar {
+    display: none;
+  }
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@utility custom-scrollbar {
+  &::-webkit-scrollbar {
+    @apply size-1.5;
+  }
+  &::-webkit-scrollbar-track {
+    @apply rounded-full;
+  }
+  &::-webkit-scrollbar-thumb {
+    @apply bg-gray-200 rounded-full dark:bg-gray-700;
+  }
+}
+
+.dark .custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: var(--color-gray-700);
+}
+
+@layer utilities {
+  input[type="date"]::-webkit-inner-spin-button,
+  input[type="time"]::-webkit-inner-spin-button,
+  input[type="date"]::-webkit-calendar-picker-indicator,
+  input[type="time"]::-webkit-calendar-picker-indicator {
+    display: none;
+    -webkit-appearance: none;
+  }
+}
+
+/* ApexCharts overrides */
+.apexcharts-legend-text {
+  @apply !text-gray-600 dark:!text-gray-400;
+}
+.apexcharts-text {
+  @apply !fill-gray-600 dark:!fill-gray-400;
+}
+/* Tooltip dos gráficos com aspecto liquid-glass "fosco": backdrop-blur forte
+   + saturate exagera as cores do gráfico atrás + tint translúcido + shine
+   inset. Sem turbulence SVG (filter url quebrava o positioning interno do
+   ApexCharts), mas mantém a sensação de vidro. */
+/* Glass tooltip — light theme. Apex aplica `apexcharts-theme-light` quando
+   `tooltip.theme: "light"`. */
+.apexcharts-tooltip.apexcharts-theme-light {
+  @apply gap-1 !rounded-xl !border-white/60 p-3 !bg-white/75;
+  /* Blur subiu pra 16px (era 12px) compensando a transparência maior:
+     mais vidro, menos haze que prejudique a leitura. */
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.6);
+}
+
+/* Glass tooltip — dark theme. Apex aplica `apexcharts-theme-dark` quando
+   `tooltip.theme: "dark"`. Pra parecer com o light (frosted glass com tint
+   sutil do fundo aparecendo), usamos:
+   - gray-800/80 ao invés de gray-900/92 → não vai pro preto absoluto e deixa
+     o conteúdo do gráfico atrás vazar como tint colorido
+   - backdrop saturate(150%) realça as cores das barras que vazam, dando
+     a mesma "vida" que o light mode tem com bg-white/92
+   - shine inset bem sutil pra não queimar */
+.apexcharts-tooltip.apexcharts-theme-dark {
+  @apply gap-1 !rounded-xl !border-white/15 p-3;
+  /* Plain CSS pra garantir que o background atualiza no HMR do Tailwind
+     (o JIT às vezes pula re-processamento de @apply quando só o valor muda).
+     gray-800 com 65% opacidade. */
+  background-color: rgba(31, 41, 55, 0.65) !important;
+  backdrop-filter: blur(16px) saturate(150%);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.12);
+}
+/* Texto/labels do tooltip dark — branco quase puro pra contrastar com bg. */
+.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-title,
+.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-text,
+.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-text-y-label,
+.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-text-y-value {
+  color: rgba(255, 255, 255, 0.95) !important;
+}
+/* Marker do tooltip dark: borda branca sutil pra destacar do bg gray-800
+   e impedir que o marker se confunda com a barra atrás (especialmente
+   quando o marker tem a mesma cor da barra hovered). */
+.apexcharts-tooltip.apexcharts-theme-dark .apexcharts-tooltip-marker {
+  box-shadow: 0 0 0 1.5px rgba(255, 255, 255, 0.4);
+}
+.dark .apexcharts-tooltip.apexcharts-theme-light {
+  /* Shine bem mais sutil no dark — branco 55% queima sobre fundo escuro. */
+  box-shadow:
+    0 8px 32px -8px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+.apexcharts-legend-text {
+  @apply pl-5! !text-gray-600 dark:!text-gray-400;
+}
+.apexcharts-tooltip-series-group {
+  @apply !p-0;
+}
+.apexcharts-tooltip-y-group {
+  @apply !p-0;
+}
+.apexcharts-tooltip-title {
+  @apply !mb-0 !border-b-0 !bg-transparent !p-0 !text-[10px] !leading-4 !text-gray-800 dark:!text-white/90;
+}
+.apexcharts-tooltip-text {
+  @apply !text-theme-xs !text-gray-700 dark:!text-white/90;
+}
+.apexcharts-tooltip-text-y-value {
+  @apply !font-medium;
+}
+.apexcharts-gridline {
+  @apply !stroke-gray-100 dark:!stroke-gray-800;
+}
+
+/* jvectormap */
+.jvectormap-container {
+  @apply !bg-gray-50 dark:!bg-gray-900;
+}
+.jvectormap-region.jvectormap-element {
+  @apply !fill-gray-300 hover:!fill-brand-500 dark:!fill-gray-700 dark:hover:!fill-brand-500;
+}
+
+.input-date-icon::-webkit-inner-spin-button,
+.input-date-icon::-webkit-calendar-picker-indicator {
+  opacity: 0;
+  -webkit-appearance: none;
+}
+
+/* ============================================================================
+   Override do autofill do browser (Chrome/Safari/Edge)
+   ============================================================================
+   Quando o browser preenche um input com credenciais salvas, ele aplica um
+   background light-lavender (light mode) ou amarelo-pálido (variantes) que
+   bypass-a o `background-color` do CSS. Pra cancelar isso sem perder a
+   funcionalidade do autofill em si, usamos dois tricks combinados:
+   1. `transition: background-color 5000s` — atrasa qualquer mudança de bg
+      por ~1h30, então o overlay do autofill nunca aparece visualmente.
+   2. `-webkit-text-fill-color: currentColor` — garante que o texto preenchido
+      use a cor de texto do tema (não a cor padrão do autofill).
+   `caret-color` pra cursor visível, `box-shadow inset transparent` como
+   defesa em profundidade pra browsers que ignoram a transition. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus,
+select:-webkit-autofill,
+select:-webkit-autofill:hover,
+select:-webkit-autofill:focus {
+  -webkit-text-fill-color: currentColor !important;
+  caret-color: currentColor;
+  transition: background-color 5000s ease-in-out 0s, color 5000s ease-in-out 0s;
+  -webkit-box-shadow: 0 0 0 1000px transparent inset !important;
+  background-color: transparent !important;
+}

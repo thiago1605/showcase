@@ -1,0 +1,6 @@
+<Project>
+  <ItemGroup Condition="'$(DOTNET_RUNNING_IN_CONTAINER)' == 'true'">
+    <Compile Remove="obj/**/*.cs" />
+    <Compile Remove="bin/**/*.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,85 @@
+---
+title: Eventos Disponíveis
+description: Lista completa de eventos que a Fellow Core pode enviar.
+---
+
+## Eventos de transação
+
+| Evento                    | Disparado quando                              |
+|---------------------------|------------------------------------------------|
+| `transaction.created`     | Uma nova transação é criada                    |
+| `transaction.captured`    | O pagamento é confirmado (Pix recebido, cartão aprovado) |
+| `transaction.expired`     | A cobrança expirou sem pagamento               |
+| `transaction.refunded`    | A transação foi totalmente reembolsada         |
+| `transaction.failed`      | Falha no processamento do pagamento            |
+
+### Payload — `transaction.captured`
+
+```json
+{
+  "event": "transaction.captured",
+  "timestamp": "2026-04-27T10:05:00Z",
+  "data": {
+    "transactionId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+    "tenantId": "550e8400-e29b-41d4-a716-446655440000",
+    "sellerId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "amount": 150.00,
+    "feeAmount": 3.00,
+    "netAmount": 147.00,
+    "status": "CAPTURED",
+    "paymentType": "PIX",
+    "provider": "FELLOW_PAY",
+    "providerTxId": "fellow-tx-abc123"
+  }
+}
+```
+
+---
+
+## Eventos de seller (KYC)
+
+| Evento              | Disparado quando                                   |
+|---------------------|----------------------------------------------------|
+| `seller.approved`   | O cadastro do seller foi aprovado                  |
+| `seller.rejected`   | O cadastro foi rejeitado                           |
+| `seller.pending`    | O cadastro está em análise                         |
+
+### Payload — `seller.approved`
+
+```json
+{
+  "event": "seller.approved",
+  "timestamp": "2026-04-27T12:00:00Z",
+  "data": {
+    "sellerId": "7c9e6679-7425-40de-944b-e07fc1f90ae7",
+    "tenantId": "550e8400-e29b-41d4-a716-446655440000",
+    "name": "Loja do João",
+    "document": "12345678901",
+    "providerAccountId": "fellow-account-id"
+  }
+}
+```
+
+---
+
+## Eventos de payout
+
+| Evento            | Disparado quando                           |
+|-------------------|--------------------------------------------|
+| `payout.created`  | Um saque/repasse foi criado                |
+| `payout.paid`     | O saque foi efetivado                      |
+| `payout.failed`   | O saque falhou                             |
+
+---
+
+## Filtrando eventos
+
+Ao [criar um webhook endpoint](/pt-br/api/webhook-endpoints), você pode assinar apenas os eventos que interessam:
+
+```json
+{
+  "url": "https://meuapp.com/webhooks",
+  "events": ["transaction.captured", "transaction.refunded"],
+  "secret": "whsec_..."
+}
+```

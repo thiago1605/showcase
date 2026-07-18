@@ -1,0 +1,86 @@
+---
+title: Ciclo de Vida da Transação
+description: Estados e transições de uma transação na Fellow Core.
+---
+
+## Diagrama de estados
+
+```
+  ┌─────────┐
+  │ PENDING  │  ← Transação criada
+  └────┬─────┘
+       │
+       ├──────────────────┐
+       │                  │
+       ▼                  ▼
+  ┌──────────┐     ┌──────────┐
+  │ CAPTURED  │     │ EXPIRED   │
+  └────┬──────┘     └───────────┘
+       │
+       ├──────────────────┐
+       │                  │
+       ▼                  ▼
+  ┌──────────┐     ┌──────────┐
+  │ REFUNDED  │     │  FAILED   │
+  └───────────┘     └───────────┘
+```
+
+## Estados
+
+| Status     | Descrição                                              |
+|------------|--------------------------------------------------------|
+| `PENDING`  | Transação criada, aguardando pagamento do cliente       |
+| `CAPTURED` | Pagamento confirmado pelo Fellow Pay                   |
+| `EXPIRED`  | Prazo de pagamento expirou sem confirmação              |
+| `REFUNDED` | Transação totalmente reembolsada                       |
+| `FAILED`   | Falha no processamento (erro de validação ou processamento) |
+
+## Transições
+
+| De         | Para       | Gatilho                                       |
+|------------|------------|------------------------------------------------|
+| `PENDING`  | `CAPTURED` | Pagamento confirmado pelo Fellow Pay           |
+| `PENDING`  | `EXPIRED`  | Cobrança expirada                              |
+| `PENDING`  | `FAILED`   | Erro no processamento                          |
+| `CAPTURED` | `REFUNDED` | Reembolso total via API                        |
+
+## Timeline
+
+Cada mudança de status gera um `TransactionEvent` na timeline da transação:
+
+```json
+{
+  "timeline": [
+    { "status": "PENDING",  "createdAt": "2026-04-27T10:00:00Z" },
+    { "status": "CAPTURED", "createdAt": "2026-04-27T10:05:23Z" },
+    { "status": "REFUNDED", "createdAt": "2026-04-27T15:30:00Z" }
+  ]
+}
+```
+
+A timeline é retornada nos endpoints `GET /api/v1/transactions/{id}` e `GET /api/v1/transactions`.
+
+## Domain Events
+
+Internamente, cada transição emite um **Domain Event** que pode ser consumido por outros módulos:
+
+| Evento                            | Quando                              |
+|-----------------------------------|--------------------------------------|
+| `TransactionCreatedEvent`         | Transação criada                    |
+| `TransactionStatusChangedEvent`   | Qualquer mudança de status          |
+
+Esses eventos são usados para:
+- Disparar webhooks para os endpoints do tenant.
+- Registrar entradas no ledger contábil.
+- Enviar notificações.
+
+## Reembolso parcial
+
+Uma transação `CAPTURED` pode receber múltiplos reembolsos parciais. O campo `refundedAmount` acumula o total reembolsado. Quando `refundedAmount >= amount`, o status muda automaticamente para `REFUNDED`.
+
+```
+Transação: R$ 200,00 (CAPTURED)
+  ├── Reembolso 1: R$ 50,00  → refundedAmount = 50,  status = CAPTURED
+  ├── Reembolso 2: R$ 100,00 → refundedAmount = 150, status = CAPTURED
+  └── Reembolso 3: R$ 50,00  → refundedAmount = 200, status = REFUNDED
+```

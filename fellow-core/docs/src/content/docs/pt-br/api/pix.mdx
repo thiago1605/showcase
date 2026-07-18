@@ -1,0 +1,326 @@
+---
+title: Pix
+description: Referência da API de pagamentos Pix, validação e gerenciamento de chaves, QR codes estáticos e transferências.
+---
+
+Endpoints para validação e gerenciamento de chaves Pix, pagamentos Pix (saída), QR codes estáticos, transferências e aprovação de pagamentos.
+
+:::note
+Pagamentos Pix de saída debitam do saldo da conta do tenant junto ao provedor configurado.
+:::
+
+---
+
+## Validar chave Pix
+
+```http
+POST /api/v1/pix/validate-key
+```
+
+### Request body
+
+| Campo    | Tipo   | Obrigatório | Descrição                          |
+|----------|--------|-------------|------------------------------------|
+| `pixKey` | string | Sim         | Chave Pix (CPF, CNPJ, e-mail, telefone ou EVP) |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/pix/validate-key \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{ "pixKey": "12345678901" }'
+```
+
+### Response `200 OK`
+
+```json
+{
+  "key": "12345678901",
+  "type": "CPF",
+  "ownerName": "João Silva",
+  "ownerDocument": "123.456.789-01"
+}
+```
+
+---
+
+## Criar pagamento Pix
+
+```http
+POST /api/v1/pix/payments
+```
+
+### Request body
+
+| Campo               | Tipo    | Obrigatório | Descrição                            |
+|---------------------|---------|-------------|--------------------------------------|
+| `destinationPixKey` | string  | Sim         | Chave Pix de destino                 |
+| `amount`            | decimal | Sim         | Valor em reais (> 0, máx R$ 100.000) |
+| `description`       | string  | Não         | Descrição do pagamento (máx 255 chars) |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/pix/payments \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "destinationPixKey": "98765432100",
+    "amount": 50.00,
+    "description": "Pagamento fornecedor"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "correlationId": "corr-...",
+  "destinationPixKey": "98765432100",
+  "amount": 50.00,
+  "status": "CONFIRMED",
+  "description": "Pagamento fornecedor",
+  "createdAt": "2026-04-29T12:00:00Z"
+}
+```
+
+---
+
+## Listar pagamentos Pix
+
+```http
+GET /api/v1/pix/payments?page=1&pageSize=20
+```
+
+### Query parameters
+
+| Parâmetro  | Tipo | Default | Descrição           |
+|------------|------|---------|---------------------|
+| `page`     | int  | 1       | Página              |
+| `pageSize` | int  | 20      | Itens por página    |
+
+### Response `200 OK`
+
+Retorna `PagedResult<PixPaymentDetailDto>`.
+
+---
+
+## Consultar pagamento Pix
+
+```http
+GET /api/v1/pix/payments/{id}
+```
+
+### Response `200 OK`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "correlationId": "corr-...",
+  "destinationPixKey": "98765432100",
+  "amount": 50.00,
+  "status": "CONFIRMED",
+  "providerTransactionId": "txn-123",
+  "description": "Pagamento fornecedor",
+  "createdAt": "2026-04-29T12:00:00Z",
+  "updatedAt": "2026-04-29T12:00:05Z"
+}
+```
+
+---
+
+## Criar QR code estático
+
+```http
+POST /api/v1/pix/qr-codes
+```
+
+### Request body
+
+| Campo         | Tipo    | Obrigatório | Descrição                             |
+|---------------|---------|-------------|---------------------------------------|
+| `name`        | string  | Sim         | Nome identificador do QR code         |
+| `amount`      | decimal | Não         | Valor fixo (se omitido, valor livre)  |
+| `description` | string  | Não         | Descrição (máx 255 chars)             |
+
+### Response `201 Created`
+
+```json
+{
+  "correlationId": "corr-...",
+  "name": "QR Loja Centro",
+  "brCode": "00020126...",
+  "qrCodeImage": "https://..."
+}
+```
+
+---
+
+## Listar QR codes estáticos
+
+```http
+GET /api/v1/pix/qr-codes
+```
+
+### Response `200 OK`
+
+Array de QR codes com `correlationId`, `name`, `brCode`, `qrCodeImage`, `createdAt`.
+
+---
+
+## Consultar QR code estático
+
+```http
+GET /api/v1/pix/qr-codes/{id}
+```
+
+---
+
+## Excluir QR code estático
+
+```http
+DELETE /api/v1/pix/qr-codes/{id}
+```
+
+### Response `204 No Content`
+
+---
+
+## Aprovar pagamento Pix
+
+Aprova um pagamento Pix pendente pelo `correlationId`.
+
+```http
+POST /api/v1/pix/payments/{correlationId}/approve
+```
+
+### Response `200 OK`
+
+```json
+{
+  "value": 1000,
+  "status": "CONFIRMED",
+  "destinationAlias": "destino@pix.com",
+  "correlationId": "corr-...",
+  "transactionId": "txn-..."
+}
+```
+
+---
+
+## Criar transferência Pix
+
+Realiza uma transferência Pix entre duas chaves.
+
+```http
+POST /api/v1/pix/transfers
+```
+
+### Request body
+
+| Campo        | Tipo    | Obrigatório | Descrição               |
+|--------------|---------|-------------|-------------------------|
+| `amount`     | decimal | Sim         | Valor em reais (> 0)    |
+| `fromPixKey` | string  | Sim         | Chave Pix de origem     |
+| `toPixKey`   | string  | Sim         | Chave Pix de destino    |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/pix/transfers \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "amount": 150.00,
+    "fromPixKey": "origem@email.com",
+    "toPixKey": "destino@email.com"
+  }'
+```
+
+### Response `200 OK`
+
+```json
+{
+  "amount": 150.00,
+  "time": "2026-04-29T12:00:00Z",
+  "correlationId": "corr-..."
+}
+```
+
+---
+
+## Listar chaves Pix
+
+Retorna todas as chaves Pix registradas na conta.
+
+```http
+GET /api/v1/pix/keys
+```
+
+### Response `200 OK`
+
+```json
+[
+  { "key": "12345678901", "type": "CPF", "isDefault": true },
+  { "key": "email@empresa.com", "type": "EMAIL", "isDefault": false }
+]
+```
+
+---
+
+## Criar chave Pix
+
+Registra uma nova chave Pix na conta.
+
+```http
+POST /api/v1/pix/keys
+```
+
+### Request body
+
+| Campo  | Tipo   | Obrigatório | Descrição                                    |
+|--------|--------|-------------|----------------------------------------------|
+| `key`  | string | Sim         | Valor da chave Pix                           |
+| `type` | string | Sim         | Tipo: `CPF`, `CNPJ`, `EMAIL`, `PHONE`, `EVP` |
+
+### Response `201 Created`
+
+```json
+{
+  "key": "email@empresa.com",
+  "type": "EMAIL",
+  "isDefault": false
+}
+```
+
+---
+
+## Excluir chave Pix
+
+```http
+DELETE /api/v1/pix/keys/{pixKey}
+```
+
+### Response `204 No Content`
+
+---
+
+## Definir chave Pix padrão
+
+Define uma chave Pix como a padrão da conta.
+
+```http
+POST /api/v1/pix/keys/{pixKey}/default
+```
+
+### Response `200 OK`
+
+```json
+{
+  "key": "12345678901",
+  "type": "CPF",
+  "isDefault": true
+}
+```

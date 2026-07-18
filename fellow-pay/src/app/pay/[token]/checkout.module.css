@@ -1,0 +1,675 @@
+/* Public checkout — visual de fintech brasileira (Pagar.me / Iugu / Asaas).
+   Fundo claro, cards brancos, roxo institucional só como acento.
+   Portal admin pode usar dark mode; aqui o default é luz e clareza. */
+.shell {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e5e7eb;
+  --border-strong: #d4d4d8;
+  --muted: #f3f4f6;
+  --text: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --primary: #6d4cff;
+  --primary-hover: #5b3fe6;
+  --primary-soft: #f3f0ff;
+  --success: #16a34a;
+  --warning: #d97706;
+  --error: #dc2626;
+  --radius: 12px;
+  --radius-sm: 8px;
+  --shadow-card: 0 1px 2px rgba(17, 24, 39, 0.04), 0 1px 3px rgba(17, 24, 39, 0.05);
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+.header {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.headerLeft { display: flex; align-items: center; gap: 12px; }
+/* PNG é 900×250 (proporção 3.6:1). Fixamos largura/altura na proporção exata pra
+   não depender de auto-sizing do browser e evitar Tailwind preflight bagunçar. */
+.headerLogo {
+  height: 32px;
+  width: 115px;
+  object-fit: contain;
+  object-position: left center;
+  display: block;
+}
+
+@media (max-width: 540px) {
+  .headerLogo { height: 26px; width: 94px; }
+}
+.headerBadge {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  padding: 3px 8px;
+  border-radius: 4px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  border: 1px solid #e2dafe;
+}
+.headerSecure {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.headerSecure svg { width: 14px; height: 14px; color: var(--success); }
+
+.main {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+  display: grid;
+  gap: 20px;
+}
+
+.pageTitle { text-align: left; }
+.pageTitle h1 { font-size: 18px; font-weight: 600; color: var(--text); margin: 0 0 4px; }
+.pageTitle p { font-size: 13px; color: var(--text-secondary); margin: 0; }
+
+.layout { display: grid; gap: 20px; }
+@media (min-width: 760px) {
+  .layout {
+    grid-template-columns: 1fr 1.25fr;
+    align-items: start;
+  }
+}
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 22px 22px 24px;
+  box-shadow: var(--shadow-card);
+}
+.panelTitle {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 14px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+
+.sellerLine {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  line-height: 1.4;
+}
+.sellerLine strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.amountLabel {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 4px;
+}
+.amountBig {
+  font-size: 30px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: -0.5px;
+  margin: 0;
+}
+.amountDescription {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 10px 0 0;
+  line-height: 1.5;
+}
+.amountMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 14px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.amountMeta span {
+  padding: 4px 10px;
+  background: var(--muted);
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  font-weight: 500;
+}
+/* Tags de método com cores distintas. Conjunto compatível com o admin
+   (PIX verde, crédito roxo, débito azul, boleto laranja). Também são usadas
+   pelo seletor de método (method_choice). */
+.methodTagPIX {
+  background: #ecfdf5;
+  color: #15803d;
+  border-color: #a7f3d0;
+}
+.methodTagCREDIT_CARD {
+  background: #f3f1ff;
+  color: #5a3de6;
+  border-color: #d5cdff;
+}
+.methodTagDEBIT_CARD {
+  background: #eff6ff;
+  color: #1d4ed8;
+  border-color: #bfdbfe;
+}
+.methodTagBOLETO {
+  background: #fff7ed;
+  color: #b45309;
+  border-color: #fed7aa;
+}
+.methodTagActive {
+  outline: 2px solid currentColor;
+  outline-offset: -2px;
+  font-weight: 600;
+}
+
+.label {
+  display: block;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 6px;
+  letter-spacing: 0;
+}
+.input {
+  width: 100%;
+  padding: 11px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  font-size: 14px;
+  margin-bottom: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  font-family: inherit;
+  line-height: 1.4;
+}
+.input:focus {
+  border-color: var(--primary);
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 76, 255, 0.12);
+}
+.input::placeholder { color: var(--text-tertiary); }
+.row { display: flex; gap: 12px; }
+.row > div { flex: 1; }
+
+.btnPrimary {
+  width: 100%;
+  padding: 13px 20px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, box-shadow 0.15s;
+  background: var(--primary);
+  color: #fff;
+  font-family: inherit;
+  letter-spacing: 0.1px;
+}
+.btnPrimary:hover { background: var(--primary-hover); }
+.btnPrimary:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(109, 76, 255, 0.25);
+}
+.btnPrimary:disabled {
+  background: var(--border-strong);
+  color: #fff;
+  cursor: not-allowed;
+}
+
+.btnSecondary {
+  width: 100%;
+  padding: 11px 20px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  text-align: center;
+  text-decoration: none;
+  display: block;
+}
+.btnSecondary:hover {
+  background: var(--muted);
+  border-color: var(--text-tertiary);
+}
+
+.alertError {
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: #fef2f2;
+  color: var(--error);
+  border: 1px solid #fecaca;
+  font-size: 13px;
+  margin-bottom: 14px;
+}
+.alertSuccess {
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: #f0fdf4;
+  color: var(--success);
+  border: 1px solid #bbf7d0;
+  font-size: 13px;
+}
+
+.successCard { text-align: center; padding: 28px 20px; }
+.successIcon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.successCard h2 { font-size: 18px; font-weight: 600; margin: 0 0 6px; color: var(--text); }
+.successCard p { color: var(--text-secondary); font-size: 14px; line-height: 1.55; margin: 0 0 4px; }
+.txId {
+  font-family: "SF Mono", "Fira Code", ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  margin-top: 14px;
+  word-break: break-all;
+}
+
+.spinner {
+  width: 22px;
+  height: 22px;
+  border: 2px solid #e9e7ff;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.7s linear infinite;
+  margin: 18px auto;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loadingCard {
+  text-align: center;
+  padding: 32px 20px;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.separator {
+  display: flex;
+  align-items: center;
+  margin: 18px 0 16px;
+  color: var(--text-tertiary);
+  font-size: 12px;
+  /* Sem uppercase/tracking — voz "natural" mais convidativa que "FORMA DE PAGAMENTO". */
+  font-weight: 400;
+}
+.separator::before,
+.separator::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+  opacity: 0.7;
+}
+.separator span { padding: 0 12px; }
+
+/* Card visual — exibido acima do formulário no fluxo cartão manual.
+   IMPORTANTE: nunca espelha dados sensíveis. Número, validade e CVC ficam
+   sempre dentro do Stripe CardElement. Aqui mostramos apenas placeholders
+   (••••, MM/AA) + nome do titular (input nosso) + bandeira (evento `onChange`
+   do Stripe, que expõe `brand` mas não o número). */
+.cardVisual {
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto 18px;
+  aspect-ratio: 1.586 / 1;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #1f1f2c 0%, #14141d 100%);
+  color: #f5f5f5;
+  padding: 16px 20px 18px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-shadow: 0 4px 14px rgba(17, 24, 39, 0.10), 0 1px 3px rgba(17, 24, 39, 0.06);
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.cardVisual::before {
+  content: "";
+  position: absolute;
+  top: -50px;
+  right: -40px;
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(circle, rgba(123, 97, 255, 0.22), transparent 65%);
+  pointer-events: none;
+}
+.cardVisualFocused {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.14), 0 2px 6px rgba(17, 24, 39, 0.08);
+}
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cardBrandWordmark {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: rgba(245, 245, 245, 0.7);
+}
+.cardBrandTag {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(245, 245, 245, 0.85);
+  min-height: 12px;
+}
+.cardChip {
+  width: 30px;
+  height: 22px;
+  background: linear-gradient(135deg, #c4a661 0%, #9a7d3f 60%, #76612f 100%);
+  border-radius: 4px;
+  margin-top: 2px;
+  position: relative;
+}
+.cardChip::after {
+  content: "";
+  position: absolute;
+  inset: 4px 6px;
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 2px;
+}
+.cardNumber {
+  font-family: "SF Mono", "Menlo", "Fira Code", ui-monospace, monospace;
+  font-size: 16px;
+  letter-spacing: 2px;
+  color: #f5f5f5;
+  line-height: 1;
+}
+.cardBottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+.cardSlot { min-width: 0; }
+.cardLabel {
+  display: block;
+  font-size: 8px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: rgba(245, 245, 245, 0.5);
+  margin-bottom: 2px;
+  font-weight: 600;
+}
+.cardValue {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(245, 245, 245, 0.95);
+  letter-spacing: 0.4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  font-family: "SF Mono", "Menlo", ui-monospace, monospace;
+}
+.cardValuePlaceholder { color: rgba(245, 245, 245, 0.4); }
+
+@media (prefers-reduced-motion: reduce) {
+  .cardVisual { transition: none; }
+  .cardVisualFocused { transform: none; }
+}
+
+.cardElementWrap {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  margin-bottom: 14px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.cardElementWrap:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(109, 76, 255, 0.12);
+}
+
+.pixWrap { text-align: center; }
+.pixQrImage {
+  width: 200px;
+  height: 200px;
+  background: #fff;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin: 0 auto 16px;
+  display: block;
+}
+.pixCopyBox {
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  margin-bottom: 14px;
+  text-align: left;
+}
+.pixCopyLabel {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  margin: 0 0 6px;
+  font-weight: 600;
+}
+.pixCopyCode {
+  font-family: "SF Mono", "Fira Code", ui-monospace, Menlo, monospace;
+  font-size: 11px;
+  color: var(--text);
+  word-break: break-all;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.awaiting {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 16px;
+  padding: 12px 14px;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: var(--radius-sm);
+  color: #92400e;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: left;
+}
+.awaiting svg { flex-shrink: 0; margin-top: 1px; color: var(--warning); }
+
+/* Seletor de parcelas — bloco discreto entre o card form e o CTA. Wrap + hint
+   abaixo ajudam o cliente a entender que "sem juros" significa "valor total
+   inalterado" (seller absorve, padrão BR). Se a conta Stripe BR não retornar
+   plans, o bloco inteiro não renderiza (controlado em JSX). */
+.installmentsWrap {
+  margin: 0 0 14px;
+  padding: 12px 14px;
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.installmentsHint {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  line-height: 1.4;
+}
+
+/* Chips wordmark-only das bandeiras aceitas. Sem bitmaps (licenciamento).
+   A chip da bandeira detectada (Stripe.brand via CardElement.onChange) recebe
+   estado `Active` com background brand pra dar feedback visual de detecção. */
+.brandChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: -6px 0 14px;
+}
+.brandChip {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  color: var(--text-tertiary);
+  background: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, transform 0.15s;
+}
+.brandChipActive {
+  color: var(--primary);
+  background: #f3f1ff;
+  border-color: #d5cdff;
+  transform: scale(1.04);
+}
+@media (prefers-reduced-motion: reduce) {
+  .brandChip { transition: none; }
+  .brandChipActive { transform: none; }
+}
+
+/* Method picker — exibido quando o link aceita múltiplos métodos. Cada opção é
+   um card clicável grande com ícone + label + descrição. Estilo de "list-cell"
+   tipo Pagar.me / Mercado Pago. */
+.methodChoice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.methodOption {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  grid-template-rows: auto auto;
+  column-gap: 14px;
+  align-items: center;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+  font-family: inherit;
+  text-align: left;
+}
+.methodOption:hover {
+  border-color: var(--primary);
+  background: var(--primary-soft);
+}
+.methodOption:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(109, 76, 255, 0.15);
+}
+.methodIcon {
+  grid-row: 1 / 3;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  background: var(--muted);
+  color: var(--text);
+}
+.methodLabel {
+  grid-column: 2;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+.methodDesc {
+  grid-column: 2;
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+.methodArrow {
+  grid-row: 1 / 3;
+  grid-column: 3;
+  color: var(--text-tertiary);
+  display: inline-flex;
+  align-items: center;
+}
+.methodOption:hover .methodArrow {
+  color: var(--primary);
+}
+
+/* Hint shown under the primary button while a card / wallet payment is being
+   confirmed. Covers the 3DS challenge window (Stripe opens its own iframe;
+   we surface a calm status text so the user doesn't refresh mid-challenge). */
+.processingHint {
+  margin-top: 10px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+/* Discreet legal line under each primary action (card form, BRL form).
+   Não bloqueia o fluxo (sem checkbox); o uso da página implica aceite. */
+.termsLine {
+  margin-top: 12px;
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--text-tertiary);
+  text-align: center;
+}
+.termsLine a {
+  color: var(--text-secondary);
+  text-decoration: underline;
+  text-decoration-color: var(--border-strong);
+  text-underline-offset: 2px;
+}
+.termsLine a:hover { color: var(--text); text-decoration-color: var(--text-tertiary); }
+
+.footer {
+  text-align: center;
+  padding: 24px 0 0;
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+.footer a { color: var(--text-secondary); text-decoration: none; }
+.footer a:hover { color: var(--text); }
+
+@media (max-width: 540px) {
+  .header { padding: 12px 14px; }
+  .main { padding: 22px 14px 36px; }
+  .panel { padding: 18px 18px 20px; }
+  .amountBig { font-size: 26px; }
+}

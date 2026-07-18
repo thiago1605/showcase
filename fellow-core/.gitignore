@@ -1,0 +1,43 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# .NET
+*.user
+*.suo
+.vs/
+*.userprefs
+.idea/
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+project.lock.json
+project.fragment.lock.json
+artifacts/
+
+# Runtime
+*.log
+*.tmp
+
+# Secrets / environment
+.env
+.env.*
+!.env.example
+appsettings.Development.json
+appsettings.Local.json
+certs/
+
+# Backups
+backups/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Core dumps from crashed dotnet processes
+core
+**/core

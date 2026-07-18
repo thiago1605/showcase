@@ -1,0 +1,175 @@
+---
+title: Node.js / TypeScript
+description: Exemplos de integração com a Fellow Core usando Node.js.
+---
+
+## Setup
+
+```typescript
+const BASE_URL = process.env.FELLOW_API_URL ?? 'https://api.fellowpay.com.br';
+const API_KEY = process.env.FELLOW_API_KEY!;
+
+async function fellowCore(path: string, options: RequestInit = {}) {
+  const res = await fetch(`${BASE_URL}${path}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Api-Key': API_KEY,
+      ...options.headers,
+    },
+  });
+
+  if (!res.ok) {
+    const error = await res.json();
+    throw new Error(`[${error.status}] ${error.title}: ${error.detail}`);
+  }
+
+  return res.json();
+}
+```
+
+---
+
+## Criar transação Pix
+
+```typescript
+const transaction = await fellowCore('/api/v1/transactions', {
+  method: 'POST',
+  body: JSON.stringify({
+    amount: 150.0,
+    paymentType: 'PIX',
+    description: 'Pedido #1234',
+    idempotencyKey: 'order-1234',
+  }),
+});
+
+console.log('QR Code:', transaction.gateway.qrCodeText);
+console.log('Link:', transaction.gateway.paymentUrl);
+```
+
+---
+
+## Listar transações
+
+```typescript
+const result = await fellowCore(
+  '/api/v1/transactions?page=1&pageSize=20&status=CAPTURED'
+);
+
+console.log(`Total: ${result.totalCount}`);
+for (const tx of result.items) {
+  console.log(`${tx.id} | ${tx.status} | R$ ${tx.amount}`);
+}
+```
+
+---
+
+## Reembolso parcial
+
+```typescript
+const refund = await fellowCore(`/api/v1/transactions/${transactionId}/refund`, {
+  method: 'POST',
+  body: JSON.stringify({
+    amount: 50.0,
+    reason: 'Produto com defeito',
+  }),
+});
+
+console.log('Refund ID:', refund.refundId);
+```
+
+---
+
+## Criar seller
+
+```typescript
+const seller = await fellowCore('/api/v1/sellers', {
+  method: 'POST',
+  body: JSON.stringify({
+    name: 'Loja Tech',
+    document: '12345678901',
+    email: 'tech@loja.com',
+    phone: '11999990000',
+    address: {
+      street: 'Rua Augusta',
+      number: '500',
+      neighborhood: 'Consolação',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01304000',
+    },
+  }),
+});
+
+console.log('Seller ID:', seller.id);
+```
+
+---
+
+## Receber webhook (Express)
+
+```typescript
+import express from 'express';
+import crypto from 'node:crypto';
+
+const app = express();
+
+// IMPORTANTE: usar raw body para validar HMAC
+app.use('/webhooks', express.raw({ type: 'application/json' }));
+
+app.post('/webhooks/fellow', (req, res) => {
+  const signature = req.headers['x-fellow-signature'] as string;
+  const secret = process.env.WEBHOOK_SECRET!;
+
+  // Validar assinatura
+  const expected = crypto
+    .createHmac('sha256', secret)
+    .update(req.body)
+    .digest('hex');
+
+  const received = signature?.replace('sha256=', '') ?? '';
+
+  if (!crypto.timingSafeEqual(
+    Buffer.from(expected, 'hex'),
+    Buffer.from(received, 'hex')
+  )) {
+    return res.status(401).send('Invalid signature');
+  }
+
+  const event = JSON.parse(req.body.toString());
+
+  switch (event.event) {
+    case 'transaction.captured':
+      console.log('Pagamento confirmado:', event.data.transactionId);
+      // Atualizar pedido no banco...
+      break;
+
+    case 'transaction.refunded':
+      console.log('Reembolso:', event.data.transactionId);
+      break;
+
+    case 'seller.approved':
+      console.log('Seller aprovado:', event.data.sellerId);
+      break;
+  }
+
+  res.status(200).send('OK');
+});
+
+app.listen(3000);
+```
+
+---
+
+## Dashboard
+
+```typescript
+const dashboard = await fellowCore(
+  '/api/v1/dashboard?from=2026-04-01&to=2026-04-30'
+);
+
+console.log(`Volume: R$ ${dashboard.totalAmount}`);
+console.log(`Taxas: R$ ${dashboard.totalFees}`);
+console.log(`Líquido: R$ ${dashboard.totalNet}`);
+console.log(`Transações: ${dashboard.transactionCount}`);
+```

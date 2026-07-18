@@ -1,0 +1,70 @@
+---
+title: Taxas e Split
+description: Como as taxas são calculadas e distribuídas na Fellow Core.
+---
+
+## Estrutura de taxas
+
+A Fellow Core calcula taxas em dois níveis:
+
+### 1. Taxa do seller (FeeSchedule)
+
+Cada seller pode ter taxas individuais definidas no `FeeSchedule`:
+
+| Campo                   | Descrição                                |
+|-------------------------|------------------------------------------|
+| `feeDebit`              | % cobrado em transações de débito        |
+| `feeCreditCash`         | % cobrado em crédito à vista             |
+| `feeCreditInstallment`  | % cobrado em crédito parcelado           |
+| `feePixIn`              | % cobrado em Pix recebido                |
+
+Se o seller **não tiver** taxas configuradas, as taxas padrão do tenant são usadas.
+
+### 2. Taxa da plataforma (Split Partner)
+
+Configurada no painel administrativo do Fellow Pay, não via API. É a porcentagem que a plataforma recebe de cada transação processada via sub-conta.
+
+## Cálculo
+
+```
+Valor bruto:    R$ 100,00
+Fee do seller:  R$ 100,00 × 2% = R$ 2,00
+Valor líquido:  R$ 100,00 - R$ 2,00 = R$ 98,00
+```
+
+Para crédito parcelado, a taxa pode ser diferente:
+
+```
+Valor bruto:    R$ 300,00 (3x de R$ 100,00)
+Fee (parcelado): R$ 300,00 × 4.5% = R$ 13,50
+Valor líquido:   R$ 300,00 - R$ 13,50 = R$ 286,50
+```
+
+## Strategy Pattern
+
+A Fellow Core usa o **Strategy Pattern** para calcular taxas por tipo de pagamento:
+
+| Strategy            | PaymentType   | Cálculo                                  |
+|---------------------|---------------|------------------------------------------|
+| `PixPaymentStrategy`| PIX           | `amount × feePixIn%`                     |
+| `CreditPaymentStrategy` | CREDIT_CARD | `amount × feeCreditCash%` (à vista) ou `amount × feeCreditInstallment%` (parcelado) |
+| `DebitPaymentStrategy`  | DEBIT       | `amount × feeDebit%`                     |
+
+Cada strategy também calcula a **data estimada de liquidação** (`expectedSettlementDate`):
+
+| Tipo         | Prazo estimado  |
+|--------------|-----------------|
+| PIX          | D+0 (mesmo dia) |
+| Crédito      | D+30            |
+| Débito       | D+1             |
+
+## Fluxo completo
+
+```
+1. Tenant cria transação (amount=100, paymentType=PIX, sellerId=X)
+2. Strategy calcula: feeAmount=2.00, netAmount=98.00
+3. Fellow Pay cria cobrança direcionada à sub-conta do seller
+4. Cliente paga R$100
+5. Seller recebe R$100 - taxa_processamento - taxa_plataforma
+6. Fellow Core registra feeAmount e netAmount na transação
+```

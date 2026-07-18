@@ -1,0 +1,10 @@
+{
+  "scenario": "Mixed Concurrency Storm",
+  "verdict": "PASS",
+  "transactions_created": 340,
+  "payouts_succeeded": 0,
+  "payouts_rejected_insufficient": 66352,
+  "negative_balances": 0,
+  "p95_tx_latency_ms": 16,
+  "p95_payout_latency_ms": 38
+}

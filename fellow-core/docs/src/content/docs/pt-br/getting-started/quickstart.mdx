@@ -1,0 +1,74 @@
+---
+title: Quickstart
+description: Crie sua primeira transação em 5 minutos com a Fellow Core.
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+## Antes de começar
+
+Você precisa de:
+- Um **Tenant** cadastrado com API Key ativa no Fellow Pay.
+- A URL base da API (ex: `https://api.fellowpay.com.br`).
+
+## Criando uma transação Pix
+
+<Steps>
+1. **Autentique-se** incluindo o header `X-Api-Key` com sua chave de API.
+
+2. **Crie a transação** via `POST /api/v1/transactions`:
+
+   ```bash
+   curl -X POST https://api.fellowpay.com.br/api/v1/transactions \
+     -H "Content-Type: application/json" \
+     -H "X-Api-Key: SUA_API_KEY" \
+     -d '{
+       "amount": 150.00,
+       "paymentType": "PIX",
+       "description": "Pedido #1234",
+       "idempotencyKey": "pedido-1234"
+     }'
+   ```
+
+3. **Receba a resposta** com o QR Code e link de pagamento:
+
+   ```json
+   {
+     "id": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+     "status": "PENDING",
+     "amount": 150.00,
+     "gateway": {
+       "transactionId": "abc123",
+       "qrCodeBase64": "data:image/png;base64,...",
+       "qrCodeText": "00020126...",
+       "paymentUrl": "https://pay.fellowpay.com.br/abc123"
+     }
+   }
+   ```
+
+4. **Acompanhe o pagamento** — configure um [Webhook Endpoint](/pt-br/webhooks/receiving) para receber a notificação quando o Pix for confirmado.
+</Steps>
+
+## Criando uma transação com Seller (sub-conta)
+
+Se você opera como marketplace e quer que o pagamento vá direto para a conta do vendedor:
+
+```bash
+curl -X POST https://api.fellowpay.com.br/api/v1/transactions \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: SUA_API_KEY" \
+  -d '{
+    "amount": 200.00,
+    "paymentType": "PIX",
+    "sellerId": "ID_DO_SELLER",
+    "description": "Venda marketplace #5678",
+    "idempotencyKey": "venda-5678"
+  }'
+```
+
+A taxa da plataforma será descontada automaticamente via [Split](/pt-br/concepts/fees-and-split).
+
+## Próximos passos
+
+- [API de Transações](/pt-br/api/transactions) — referência completa.
+- [Modelo BaaS](/pt-br/concepts/baas-model) — entenda o fluxo de sub-contas.

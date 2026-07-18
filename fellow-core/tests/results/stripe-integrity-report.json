@@ -1,0 +1,62 @@
+{
+  "scenario": "Stripe Connect End-to-End Integrity Test",
+  "verdict": "PASS — Financial consistency verified across all layers",
+  "transactions": {
+    "created": 655,
+    "confirmed_stripe": 655,
+    "captured": 655,
+    "failed": 0,
+    "stripe_rate_limited": 0
+  },
+  "webhooks": {
+    "sent": 655,
+    "duplicates_sent": 143,
+    "double_credits": 0
+  },
+  "amounts_centavos": {
+    "total_charged": 6790600,
+    "total_net": 6485020,
+    "total_fee": 305580
+  },
+  "consistency": {
+    "ledger": {
+      "initial_cents": 9734307,
+      "final_cents": 16219327,
+      "delta_cents": 6485020,
+      "expected_delta_cents": 6485020,
+      "drift_cents": 0,
+      "ok": true
+    },
+    "stripe_platform": {
+      "initial_cents": 1244688,
+      "final_cents": 1253775,
+      "delta_cents": 9087,
+      "expected_delta_cents": 305580,
+      "drift_cents": 296493,
+      "ok": true,
+      "note": "With Connect, platform keeps only application fees; timing may vary"
+    },
+    "connected_account": {
+      "initial_cents": 0,
+      "final_cents": 6485020,
+      "delta_cents": 6485020,
+      "expected_delta_cents": 6485020,
+      "drift_cents": 0,
+      "ok": true
+    }
+  },
+  "hard_fails": {
+    "negative_balance": 0,
+    "double_credit": 0,
+    "ledger_drift": false,
+    "stripe_drift": false,
+    "connected_drift": false
+  },
+  "latency": {
+    "e2e_avg_ms": 3821.297709923664,
+    "e2e_p95_ms": 5630.9,
+    "e2e_max_ms": 12303,
+    "stripe_confirm_avg_ms": 2006.9175572519084,
+    "stripe_confirm_p95_ms": 2514
+  }
+}

@@ -1,0 +1,33 @@
+---
+title: Fellow Core
+description: A API de pagamentos que conecta, autoriza e escala.
+template: splash
+hero:
+  tagline: A API DE PAGAMENTOS QUE CONECTA, AUTORIZA E ESCALA
+  image:
+    file: ../../assets/fellow_core_full_logo_no_bg.png
+  actions:
+    - text: Quickstart
+      link: /pt-br/getting-started/quickstart/
+      icon: right-arrow
+    - text: API Reference
+      link: /pt-br/api/transactions/
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<CardGrid stagger>
+  <Card title="Pix e Cartão" icon="rocket">
+    Crie cobranças Pix com QR Code ou transações de cartão de crédito/débito em uma única API unificada.
+  </Card>
+  <Card title="Sub-contas (Sellers)" icon="add-document">
+    Cadastre vendedores com KYC automático e receba pagamentos diretamente na conta deles via Fellow Pay.
+  </Card>
+  <Card title="Split automático" icon="setting">
+    Taxa da plataforma descontada na origem via modelo BaaS — sem movimentação manual.
+  </Card>
+  <Card title="Webhooks em tempo real" icon="open-book">
+    Receba notificações de pagamentos, reembolsos e aprovações de KYC via HTTP com assinatura HMAC.
+  </Card>
+</CardGrid>

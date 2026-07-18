@@ -1,0 +1,85 @@
+---
+title: Usuários
+description: Referência da API de gerenciamento de usuários do dashboard Fellow Pay.
+---
+
+Endpoints para gerenciar usuários do dashboard. Requer autenticação via **JWT Bearer** (não API Key).
+
+:::note
+Estes endpoints são utilizados pelo dashboard administrativo. A autenticação é feita via token JWT obtido no fluxo de login (`POST /api/v1/auth/login`).
+:::
+
+---
+
+## Criar usuário
+
+```http
+POST /api/v1/users
+```
+
+### Headers
+
+```
+Authorization: Bearer {accessToken}
+```
+
+### Request body
+
+| Campo      | Tipo   | Obrigatório | Descrição                                                       |
+|------------|--------|-------------|-----------------------------------------------------------------|
+| `name`     | string | Sim         | Nome do usuário                                                 |
+| `email`    | string | Sim         | E-mail (único por tenant)                                       |
+| `password` | string | Sim         | Senha (mín 12 chars, maiúscula, minúscula, número e especial)  |
+| `role`     | enum   | Sim         | `0` = OWNER, `1` = SUPER_ADMIN, `2` = VIEWER                   |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/users \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer {accessToken}" \
+  -d '{
+    "name": "Ana Costa",
+    "email": "ana@empresa.com",
+    "password": "Str0ng!P@ssw0rd",
+    "role": 1
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "a1b2c3d4-...",
+  "name": "Ana Costa",
+  "email": "ana@empresa.com",
+  "role": "SUPER_ADMIN",
+  "createdAt": "2026-04-29T12:00:00Z"
+}
+```
+
+---
+
+## Listar usuários
+
+```http
+GET /api/v1/users?page=1&pageSize=20
+```
+
+### Response `200 OK`
+
+Retorna lista paginada de usuários do tenant.
+
+---
+
+## Excluir usuário
+
+```http
+DELETE /api/v1/users/{id}
+```
+
+### Response `204 No Content`
+
+:::caution
+Um usuário OWNER não pode ser excluído. Promova outro usuário antes de tentar a exclusão.
+:::

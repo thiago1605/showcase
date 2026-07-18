@@ -1,0 +1,129 @@
+---
+title: Assinaturas
+description: Referência completa da API de assinaturas recorrentes da Fellow Core.
+---
+
+Assinaturas automatizam cobranças recorrentes via Pix. Em cada ciclo, a Fellow Core cria uma transação Pix automaticamente — sem intervenção manual.
+
+---
+
+## Criar assinatura
+
+```http
+POST /api/v1/subscriptions
+```
+
+### Request body
+
+| Campo         | Tipo    | Obrigatório | Descrição                                                   |
+|---------------|---------|-------------|-------------------------------------------------------------|
+| `sellerId`    | uuid    | Não         | ID do seller responsável pela cobrança                      |
+| `customerId`  | uuid    | Não         | ID do cliente (pagador)                                     |
+| `amount`      | decimal | Sim         | Valor de cada ciclo em reais                                |
+| `description` | string  | Sim         | Descrição que aparece em cada cobrança                      |
+| `interval`    | string  | Sim         | `WEEKLY`, `MONTHLY`, `QUARTERLY` ou `YEARLY`               |
+| `startDate`   | date    | Não         | Data da primeira cobrança (padrão: hoje)                    |
+| `maxCycles`   | int     | Não         | Número máximo de ciclos; `null` = sem limite (máx: 1000)   |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/subscriptions \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "sellerId": "3fa85f64-...",
+    "amount": 99.90,
+    "description": "Plano Mensal",
+    "interval": "MONTHLY",
+    "maxCycles": 12
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "sub_...",
+  "status": "ACTIVE",
+  "amount": 99.90,
+  "interval": "MONTHLY",
+  "cycleCount": 0,
+  "maxCycles": 12,
+  "nextBillingDate": "2024-02-15",
+  "createdAt": "2024-01-15T09:00:00Z"
+}
+```
+
+---
+
+## Listar assinaturas
+
+```http
+GET /api/v1/subscriptions?page=1&pageSize=20
+```
+
+---
+
+## Obter assinatura
+
+```http
+GET /api/v1/subscriptions/{id}
+```
+
+### Status possíveis
+
+| Status     | Descrição                                             |
+|------------|-------------------------------------------------------|
+| `ACTIVE`   | Cobrando normalmente                                  |
+| `PAUSED`   | Pausada; `nextBillingDate` não avança                 |
+| `CANCELED` | Encerrada manualmente                                 |
+| `EXPIRED`  | `maxCycles` atingido; não gera mais cobranças         |
+
+---
+
+## Cancelar assinatura
+
+```http
+POST /api/v1/subscriptions/{id}/cancel
+```
+
+Assinatura cancelada não pode ser reativada. Para suspensão temporária, use `/pause`.
+
+Response: `204 No Content`
+
+---
+
+## Pausar assinatura
+
+```http
+POST /api/v1/subscriptions/{id}/pause
+```
+
+A `nextBillingDate` fica congelada até a assinatura ser retomada.
+
+Response: `204 No Content`
+
+---
+
+## Retomar assinatura
+
+```http
+POST /api/v1/subscriptions/{id}/resume
+```
+
+Recalcula a `nextBillingDate` a partir do dia atual.
+
+Response: `204 No Content`
+
+---
+
+## Processamento automático
+
+O processador de ciclos executa a cada hora via Hangfire. Para cada assinatura com `nextBillingDate <= agora` e status `ACTIVE`:
+
+1. Cria uma transação Pix com chave de idempotência `sub-{id}-cycle-{n}`
+2. Avança `nextBillingDate` para o próximo intervalo
+3. Incrementa `cycleCount`; se `cycleCount == maxCycles`, marca como `EXPIRED`
+
+Falhas em uma assinatura não bloqueiam as demais — o processador é resiliente.

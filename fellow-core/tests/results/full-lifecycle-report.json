@@ -1,0 +1,61 @@
+{
+  "scenario": "Full Money Lifecycle Integrity Test",
+  "verdict": "PASS — Full lifecycle financial consistency verified",
+  "transactions": {
+    "created": 654,
+    "captured": 638,
+    "failed": 16
+  },
+  "refunds": {
+    "requested": 156,
+    "processed": 63,
+    "failed": 55,
+    "duplicate_blocked": 19,
+    "double_refund_detected": 0
+  },
+  "disputes": {
+    "created": 53,
+    "won": 37,
+    "lost": 16
+  },
+  "webhooks": {
+    "sent": 721,
+    "duplicates_sent": 186
+  },
+  "amounts_centavos": {
+    "total_captured_net": 5980979,
+    "total_refunded": 278285,
+    "total_disputed": 481894,
+    "total_dispute_won": 342179
+  },
+  "consistency": {
+    "ledger": {
+      "initial_cents": 34576427,
+      "final_cents": 40279128,
+      "delta_cents": 5702701,
+      "expected_delta_cents": 5702694,
+      "drift_cents": 7,
+      "ok": true
+    },
+    "connected_account": {
+      "initial_cents": 0,
+      "final_cents": 5980979,
+      "delta_cents": 5980979,
+      "expected_delta_cents": 5980979,
+      "drift_cents": 0,
+      "ok": true
+    }
+  },
+  "hard_fails": {
+    "negative_balance": 0,
+    "double_credit": 0,
+    "ledger_drift": false,
+    "connected_drift": false
+  },
+  "latency": {
+    "payment_e2e_avg_ms": 3883.980582524272,
+    "payment_e2e_p95_ms": 7514.449999999999,
+    "refund_avg_ms": 1310.6888888888889,
+    "refund_p95_ms": 1546.3999999999996
+  }
+}

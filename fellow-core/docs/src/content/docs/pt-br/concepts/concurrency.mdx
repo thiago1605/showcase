@@ -1,0 +1,71 @@
+---
+title: Concorrência e Idempotência
+description: Como a Fellow Core lida com requisições concorrentes e duplicadas.
+---
+
+## Idempotência
+
+Toda transação exige um campo `idempotencyKey` único por tenant. Se você enviar duas requisições com a mesma chave, a segunda será rejeitada com `409 Conflict`.
+
+Isso evita cobranças duplicadas causadas por:
+- Retentativas automáticas do seu sistema.
+- Cliques duplos do usuário.
+- Falhas de rede com retry.
+
+### Como usar
+
+Use um identificador único do seu sistema como chave (ex: ID do pedido):
+
+```bash
+curl -X POST /api/v1/transactions \
+  -d '{ "idempotencyKey": "order-12345", ... }'
+```
+
+:::tip
+Boas chaves de idempotência: `order-{id}`, `invoice-{uuid}`, `{userId}-{timestamp}`.
+:::
+
+---
+
+## Concorrência otimista
+
+A Fellow Core usa **optimistic concurrency control** via `RowVersion` (EF Core) para proteger operações críticas como reembolso.
+
+### Como funciona
+
+1. Seu request lê a transação (com `RowVersion` = 1).
+2. Outro request modifica a mesma transação (RowVersion passa para 2).
+3. Seu request tenta salvar — Fellow Core detecta que o `RowVersion` mudou.
+4. A API retorna `409 Conflict`.
+
+### O que fazer ao receber 409?
+
+Basta **tentar novamente**. A nova tentativa lerá o estado atualizado da transação.
+
+```javascript
+async function refundWithRetry(transactionId, amount, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const res = await fetch(`/api/v1/transactions/${transactionId}/refund`, {
+      method: 'POST',
+      body: JSON.stringify({ amount }),
+      headers: { 'Content-Type': 'application/json', /* auth headers */ }
+    });
+
+    if (res.status === 409) {
+      await new Promise(r => setTimeout(r, 100 * (i + 1))); // backoff
+      continue;
+    }
+
+    return res.json();
+  }
+  throw new Error('Max retries exceeded');
+}
+```
+
+### Cenários protegidos
+
+| Operação                           | Proteção                         |
+|------------------------------------|----------------------------------|
+| Criar transação                    | `idempotencyKey` (índice único)  |
+| Reembolsar transação               | `RowVersion` (concorrência)      |
+| Atualizar status via webhook       | `RowVersion` (concorrência)      |

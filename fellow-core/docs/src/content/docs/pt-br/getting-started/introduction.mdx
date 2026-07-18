@@ -1,0 +1,57 @@
+---
+title: Introdução
+description: O que é a Fellow Core e como ela funciona.
+---
+
+## O que é a Fellow Core?
+
+A **Fellow Core** é a API de integração do ecossistema **Grupo Fellow**. Ela permite que qualquer plataforma (marketplace, SaaS, app) conecte-se ao **Fellow Pay** — nosso produto de pagamentos — para oferecer cobranças, split de pagamento e gestão financeira sem precisar construir infraestrutura própria.
+
+> **"A API DE PAGAMENTOS QUE CONECTA, AUTORIZA E ESCALA"**
+
+### Principais recursos
+
+- **Cobrança Pix e Cartão** — crie transações via API e receba notificações em tempo real.
+- **Sub-contas (Sellers)** — cadastre vendedores com KYC automático e receba pagamentos diretamente na conta deles.
+- **Split automático** — a taxa da plataforma é descontada na origem via modelo BaaS.
+- **Webhooks bidirecionais** — receba eventos de pagamento e envie eventos para os endpoints dos seus tenants.
+- **Dashboard** — agregações de volume, status e tipo de pagamento por período.
+- **Multi-tenant** — cada tenant tem slug, API key e configuração independente.
+
+### Arquitetura
+
+```
+┌─────────────┐     ┌──────────────────┐     ┌─────────────────┐
+│  Seu App     │────▶│  Fellow Core API  │────▶│  Fellow Pay      │
+│  (Frontend)  │◀────│  (.NET 10)       │◀────│  (Processamento) │
+└─────────────┘     └──────────────────┘     └─────────────────┘
+                           │
+                    ┌──────┴──────┐
+                    │ PostgreSQL  │
+                    │ Redis       │
+                    │ Hangfire    │
+                    └─────────────┘
+```
+
+### Stack
+
+| Camada         | Tecnologia                        |
+|----------------|-----------------------------------|
+| API            | ASP.NET Core (.NET 10)            |
+| ORM            | EF Core + Dapper                  |
+| Banco          | PostgreSQL 16                     |
+| Cache/Fila     | Redis                             |
+| Jobs           | Hangfire                          |
+| Pagamentos     | Fellow Pay (Pix, Cartão, BaaS)    |
+
+### Ecossistema Grupo Fellow
+
+| Produto         | Descrição                                           |
+|-----------------|-----------------------------------------------------|
+| **Fellow Core** | API de integração — esta documentação               |
+| **Fellow Pay**  | Produto final: dashboard, checkout, gestão financeira|
+
+### Próximos passos
+
+- [Quickstart](/pt-br/getting-started/quickstart) — crie sua primeira transação em 5 minutos.
+- [Autenticação](/pt-br/getting-started/authentication) — entenda como autenticar suas requisições.

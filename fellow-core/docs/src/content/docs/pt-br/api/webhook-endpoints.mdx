@@ -1,0 +1,70 @@
+---
+title: Webhook Endpoints
+description: Gerencie os endpoints que recebem eventos da Fellow Core.
+---
+
+## Criar endpoint
+
+```http
+POST /api/v1/webhook-endpoints
+```
+
+### Request body
+
+| Campo    | Tipo     | Obrigatório | Descrição                         |
+|----------|----------|-------------|-----------------------------------|
+| `url`    | string   | Sim         | URL HTTPS que receberá os eventos |
+| `events` | string[] | Sim         | Lista de eventos assinados        |
+| `secret` | string   | Sim         | Segredo para assinatura HMAC      |
+
+### Exemplo
+
+```bash
+curl -X POST /api/v1/webhook-endpoints \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: {apiKey}" \
+  -d '{
+    "url": "https://meuapp.com/webhooks/fellow",
+    "events": ["transaction.captured", "transaction.refunded", "seller.approved"],
+    "secret": "whsec_meu_segredo_secreto"
+  }'
+```
+
+### Response `201 Created`
+
+```json
+{
+  "id": "uuid",
+  "url": "https://meuapp.com/webhooks/fellow",
+  "events": ["transaction.captured", "transaction.refunded", "seller.approved"],
+  "isActive": true,
+  "createdAt": "2026-04-27T10:00:00Z"
+}
+```
+
+---
+
+## Listar endpoints
+
+```http
+GET /api/v1/webhook-endpoints
+```
+
+Retorna todos os endpoints registrados para o tenant.
+
+---
+
+## Remover endpoint
+
+```http
+DELETE /api/v1/webhook-endpoints/{id}
+```
+
+Retorna `204 No Content`.
+
+---
+
+## Próximos passos
+
+- [Recebendo Webhooks](/pt-br/webhooks/receiving) — como processar os eventos no seu servidor.
+- [Segurança (HMAC)](/pt-br/webhooks/security) — como validar a assinatura dos webhooks.

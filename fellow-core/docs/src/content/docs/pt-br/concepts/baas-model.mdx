@@ -1,0 +1,60 @@
+---
+title: Modelo BaaS
+description: Como a Fellow Core usa Banking as a Service para sub-contas.
+---
+
+## O que é BaaS?
+
+**Banking as a Service** é o modelo onde a infraestrutura bancária é oferecida via API. O **Fellow Pay** usa esse modelo internamente para:
+
+- Criar **sub-contas** (wallets) para cada seller.
+- Receber pagamentos **diretamente na conta do seller**.
+- Descontar a **taxa da plataforma** automaticamente na origem.
+
+## Fluxo de uma transação com sub-conta
+
+```
+  Cliente paga R$100,00 (Pix)
+         │
+         ▼
+  ┌──────────────────┐
+  │   Fellow Pay       │
+  │   (Processamento)  │
+  │                    │
+  │  Seller recebe:    │
+  │  R$100 - R$2 (fee) │
+  │  = R$98,00         │
+  │                    │
+  │  Plataforma recebe:│
+  │  R$2,00 (Split)    │
+  └──────────────────┘
+```
+
+### Passo a passo
+
+1. **Tenant cria seller** via Fellow Core API → Fellow Pay registra a sub-conta e inicia KYC.
+2. **KYC é processado** → webhook notifica aprovação/rejeição.
+3. **Tenant cria transação com `sellerId`** → Fellow Core cria a cobrança direcionada à sub-conta do seller.
+4. **Cliente paga** → o dinheiro vai direto para a wallet do seller.
+5. **Taxa da plataforma** → descontada automaticamente via **Split Partner** (Conta Mediadora).
+
+## Subaccount vs Split Partner
+
+| Conceito          | O que faz                                          |
+|-------------------|----------------------------------------------------|
+| **Subaccount**    | Carteira do seller que recebe o pagamento           |
+| **Split Partner** | Conta mediadora que recebe a taxa da plataforma     |
+
+O **Split Partner** é configurado no painel administrativo do Fellow Pay. Ele define a porcentagem ou valor fixo que a plataforma recebe de cada transação.
+
+## Conta Mediadora
+
+A **Conta Mediadora** é a carteira Fellow Pay do Tenant que acumula as taxas de plataforma. Ela é configurada uma única vez no painel administrativo.
+
+:::note[Importante]
+A taxa de processamento é cobrada separadamente da taxa da plataforma. O seller recebe: `valor - taxa_processamento - taxa_plataforma`.
+:::
+
+## Sem sub-conta
+
+Quando a transação **não tem `sellerId`**, o pagamento vai direto para a conta principal do tenant, sem split.
