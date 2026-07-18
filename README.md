@@ -1,6 +1,6 @@
 # Showcase
 
-Este repositório reúne uma versão pública de um gateway de pagamentos desenvolvido para demonstrar arquitetura, padrões de projeto e boas práticas de engenharia de software, preservando informações proprietárias do projeto original.
+Este repositório reúne uma versão pública de um gateway de pagamentos desenvolvida para demonstrar arquitetura de software, padrões de projeto e boas práticas de engenharia, preservando as informações proprietárias do projeto original.
 
 ## Estrutura do projeto
 
@@ -14,7 +14,7 @@ Responsável pela interface do usuário, experiência da aplicação e comunica�
 
 Aplicação **backend** do gateway de pagamentos, desenvolvida em **.NET**.
 
-Contém a API, a modelagem do domínio, integrações, infraestrutura, persistência de dados e demais componentes responsáveis pelo processamento das operações da plataforma.
+Contém a API, a modelagem do domínio, integrações com serviços externos, persistência de dados, processamento assíncrono e demais componentes responsáveis pelas operações da plataforma.
 
 ## Tecnologias
 
@@ -29,8 +29,9 @@ Contém a API, a modelagem do domínio, integrações, infraestrutura, persistê
 * .NET
 * ASP.NET Core
 * Entity Framework Core
-* SQL Server
-* xUnit
+* PostgreSQL
+* Redis
+* Hangfire
 
 ### Infraestrutura
 
@@ -47,14 +48,14 @@ Este repositório tem como objetivo demonstrar:
 * Padrões de projeto;
 * Boas práticas de desenvolvimento;
 * Estruturação de APIs REST;
-* Qualidade e organização do código.
+* Organização e qualidade do código.
 
 ## Observação
 
 Esta é uma versão **pública** do projeto.
 
-Alguns módulos, implementações e seus respectivos testes foram intencionalmente omitidos por conterem regras de negócio proprietárias e informações confidenciais. O repositório preserva a arquitetura, os padrões de projeto e as práticas de engenharia utilizadas na solução, sem expor a lógica de negócio do sistema original.
+Alguns módulos, implementações e seus respectivos testes foram intencionalmente omitidos por conterem regras de negócio proprietárias e informações confidenciais. O repositório preserva a arquitetura, a organização da solução e as práticas de engenharia utilizadas no desenvolvimento, sem expor a lógica de negócio do sistema original.
 
 ## Licença
 
-Este projeto é disponibilizado exclusivamente para fins de demonstração técnica e composição de portfólio.
+Este projeto é disponibilizado exclusivamente para fins de demonstração técnica e composição de portfólio. Não é permitida a utilização da lógica ou da arquitetura apresentada para fins comerciais sem autorização.
